@@ -1,0 +1,101 @@
+CHITALE MANAGEMENT SYSTEM
+
+# Schema
+Tokens(TokenID,
+       -------
+       Assigned?,
+       InvoiceID);              # relationship 'In' in this schema itself
+
+
+Products(ProductID,
+         ---------
+         Name,
+         Description,
+         UnitPrice,
+         UnitType,
+         CurrentDiscount);
+
+Invoices(Invoice_ID,
+         ----------
+         InvoiceDate,
+         GST,
+         CGST,
+         DiscountGiven,
+         PaymentMode);
+
+Inventory(ProductID,            # relationship 'Has' in this schema itself
+          ---------
+          StoredQuantity,
+          DisplayedQuantity,
+          StoreThreshold);
+
+InventoryTransactions(TransactionID,
+                      -------------
+                      TransactionType,
+                      ProductID, # relationship 'Of' in this schema itself
+                      Quantity   # descriptive attribute
+                      Timestamp);
+
+Orders(OrderID,
+       -------
+       OrderDate,
+       Delivered?);
+
+OrdersOfProducts(OrderID,       # many-to-many relationship
+                 -------
+                 ProductID,
+                 ---------
+                 Quantity);
+
+TokensSelectProducts(TokenID,   # many-to-many relationship
+                     -------
+                     ProductID,
+                     ---------
+                     Quantity);
+
+ProductsInInvoices(InvoiceID, # many-to-many relationship
+                   ---------
+                   ProductID,
+                   ---------
+                   Name,
+                   Quantity,
+                   UnitPrice,
+                   Discount);
+
+
+# Domains of the attributes
+TokenID = "TOK-<num><num>"
+Assigned? = Boolean
+
+ProductID = "<alpha><alpha><alpha>-<num><num>"
+Name = "<alpha>(16)"
+Description = "<alpha>(64)"
+UnitPrice = float
+UnitType = enum("kg", "pcs")
+Currentdiscount = <num><num>.<num><num>
+
+InvoiceID = "IVC-<num1><num2>...<num10>"
+InvoiceDate = Datetime
+GST = <num><num>.<num><num>
+CGST = <num><num>.<num><num>
+Discountgiven = float
+PaymentMode = enum("cash", "card", "wallet")
+
+OrderID = "ORD-<num1><num2>...<num10>"
+OrderDate = Datetime
+Delivered? = Boolean
+
+StoredQuantity = float
+DisplayedQuantity = float
+StoreThreshold = float
+
+TransactionID = "TRC-<num1><num2>...<num10>"
+TransactionType = enum("CTR_SUB", # Counter subtract
+                       "CTR_ADD", # Counter add
+                       "INV_SUB", # Inventory subtract
+                       "INV_ADD", # Inventory add
+                       "INV_TO_CTR") # Inventory to counter (i.e. CTR_ADD and
+                                       INV_SUB combination)
+Timestamp = Datetime
+
+Quantity = float
