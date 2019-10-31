@@ -30,8 +30,6 @@ class PySql:
                                     db = self.db_name,)
             # Create the mysql cursor to execute queries
             self.cursor = self.database.cursor()
-            # Set autocommit to false
-            # self.database.autocommit(False)
         except InterfaceError:
             # Signal the user
             print("** Host name incorrect")
