@@ -15,6 +15,11 @@ class CounterManager:
     # @param quantity Requested product quantity (float)
     @staticmethod
     def add_counter_to_token(pysql, token_id, product_id, quantity):
+
+        # Check if token is assigned
+        if not TokenManager.is_token_assigned(pysql, token_id):
+            return
+
         try:
             # Remove from displayed quantity
             sql_stmt = "UPDATE `Inventory` \

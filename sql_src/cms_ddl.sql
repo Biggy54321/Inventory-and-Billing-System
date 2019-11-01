@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS Products (
        `UnitType`        ENUM ("kg", "pcs"),
        `CurrentDiscount` NUMERIC(4, 2) UNSIGNED DEFAULT 0,
        CONSTRAINT `Products_PK_FMT` CHECK (ProductID REGEXP "^[A-Z]{3}-[0-9]{2}$"),
+       CONSTRAINT `Products_CUR_DSCT_FMT` CHECK (CurrentDiscount < UnitPrice),
        CONSTRAINT `Products_PK` PRIMARY KEY (ProductID)
 );
 

@@ -86,23 +86,25 @@ class OrderManager:
     @staticmethod
     def cancel_order(pysql, order_id):
         # Get the order status
-        is_delivered = self.get_order_status(pysql, order_id)
+        is_delivered = OrderManager.get_order_status(pysql, order_id)
+
+        # If order is already delivered
+        if is_delivered:
+            return
 
         try:
-            # If order is not delivered
-            if not is_delivered:
-                # Delete the order information
-                sql_stmt = "DELETE FROM `Orders` \
-                            WHERE `OrderID` = %s"
-                pysql.run(sql_stmt, (order_id, ))
+            # Delete the order information
+            sql_stmt = "DELETE FROM `Orders` \
+                        WHERE `OrderID` = %s"
+            pysql.run(sql_stmt, (order_id, ))
 
-                # Delete the order product details
-                sql_stmt = "DELETE FROM `OrdersOfProducts` \
-                            WHERE `OrderID` = %s"
-                pysql.run(sql_stmt, (order_id, ))
+            # Delete the order product details
+            sql_stmt = "DELETE FROM `OrdersOfProducts` \
+                        WHERE `OrderID` = %s"
+            pysql.run(sql_stmt, (order_id, ))
 
-                # Commit the changes
-                pysql.commit()
+            # Commit the changes
+            pysql.commit()
         except:
             # Print error
             pysql.print_error()
@@ -115,6 +117,13 @@ class OrderManager:
     # @param order_id OrderID of the order received (string)
     @staticmethod
     def receive_order(pysql, order_id):
+        # Get the order status
+        is_delivered = OrderManager.get_order_status(pysql, order_id)
+
+        # If order is already delivered
+        if is_delivered:
+            return
+
         try:
             # Get the quantities of those products which are already present
             sql_stmt = "SELECT `Quantity`, `ProductID` \

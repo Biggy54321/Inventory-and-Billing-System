@@ -65,25 +65,30 @@ class TokenManager:
             pysql.rollback()
 
     # @brief This method puts the token back to the default state
-    #        only if the token has no linked products
+    #        only if the token has no linked products and is assigned
     # @param pysql PySql object
     # @param token_id The TokenID to be returned back (string)
     @staticmethod
     def put_token(pysql, token_id):
         # Get the token details
         token_details = TokenManager.get_token_details(pysql, token_id)
+        # Get the assignment status of token
+        is_assigned = TokenManager.is_token_assigned(pysql, token_id)
+
+        # If token details are not null or token not assigned
+        if bool(token_details) or not is_assigned:
+            return
 
         try:
-            if not len(token_details):
-                # Make the assigned status false and make the invoice id null
-                sql_stmt = "UPDATE `Tokens` \
-                            SET `Assigned?` = false, \
-                                `InvoiceID` = NULL \
-                            WHERE `TokenID` = %s"
-                pysql.run(sql_stmt, (token_id, ))
+            # Make the assigned status false and make the invoice id null
+            sql_stmt = "UPDATE `Tokens` \
+                        SET `Assigned?` = false, \
+                            `InvoiceID` = NULL \
+                        WHERE `TokenID` = %s"
+            pysql.run(sql_stmt, (token_id, ))
 
-                # Commit the changes
-                pysql.commit()
+            # Commit the changes
+            pysql.commit()
         except:
             # Print error
             pysql.print_error()

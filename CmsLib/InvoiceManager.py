@@ -27,6 +27,20 @@ class InvoiceManager:
             next_invoice_id = pysql.get_results()[0][0]
             next_invoice_id_read = 1
 
+        # Check if tokens are all assigned and the total is not null
+        has_products = 0
+        for token in token_ids:
+            # Check if token is assigned
+            if not TokenManager.is_token_assigned(pysql, token):
+                return
+            # Check if token has any products
+            token_details = TokenManager.get_token_details(pysql, token)
+            # Update the total product status
+            has_products = has_products or bool(token_details)
+
+        if not has_products:
+            return
+
         # Create an invoice id
         invoice_id = "INV-" + format(next_invoice_id, "010d")
         next_invoice_id += 1
