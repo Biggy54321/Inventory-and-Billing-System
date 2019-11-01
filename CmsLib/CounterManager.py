@@ -33,6 +33,8 @@ class CounterManager:
             # Commit the changes
             pysql.commit()
         except:
+            # Print error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()
 
@@ -58,6 +60,8 @@ class CounterManager:
             # Commit the changes
             pysql.commit()
         except:
+            # Print error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()
 
@@ -68,23 +72,20 @@ class CounterManager:
     # @param product_id ProductID to be transferred (string)
     @staticmethod
     def add_token_to_counter(pysql, token_id, product_id):
-        # Get the current quantity of products in the token
-        sql_stmt = "SELECT `Quantity` \
-                    FROM `TokensSelectProducts` \
-                    WHERE `TokenID` = %s AND `ProductID` = %s"
-        pysql.run(sql_stmt, (token_id, product_id))
-
         try:
-            # Set the product quantity to be transferred
-            try:
-                # Get the result quantity from the query
-                quantity = pysql.get_results()[0][0]
-                # Remove the product from the product
-                sql_stmt = "DELETE FROM `TokensSelectProducts` \
-                            WHERE `TokenID` = %s AND `ProductID` = %s"
-                pysql.run(sql_stmt, (token_id, product_id))
-            except IndexError:
-                return
+            # Get the current quantity of products in the token
+            sql_stmt = "SELECT `Quantity` \
+                        FROM `TokensSelectProducts` \
+                        WHERE `TokenID` = %s AND `ProductID` = %s"
+            pysql.run(sql_stmt, (token_id, product_id))
+
+            # Get the result quantity from the query
+            quantity = pysql.get_results()[0][0]
+
+            # Remove the product from the product
+            sql_stmt = "DELETE FROM `TokensSelectProducts` \
+                        WHERE `TokenID` = %s AND `ProductID` = %s"
+            pysql.run(sql_stmt, (token_id, product_id))
 
             # Add the required quantity to the counter
             sql_stmt = "UPDATE `Inventory` \
@@ -94,9 +95,12 @@ class CounterManager:
 
             # Log the transaction
             InventoryManager.log_transaction(pysql, "CTR_ADD", product_id, quantity)
-
             # Commit the changes
             pysql.commit()
+        except IndexError:
+            return
         except:
+            # Print error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()

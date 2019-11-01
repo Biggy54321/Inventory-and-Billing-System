@@ -77,6 +77,20 @@ class PySql:
     def rollback(self):
         self.database.rollback()
 
+    # @brief This method indicates the error that has been raised
+    def print_error(self):
+        # Get the traceback
+        tb = sys.exc_info()[2]
+
+        # Get the filename
+        filename = tb.tb_frame.f_code.co_filename
+
+        # Get the line number
+        lineno = tb.tb_lineno
+
+        # Print the line number as error
+        print("** Error occurred at line number {} in file {}".format(lineno, filename))
+
     # @brief This method returns the host server name
     # @return host_name The host server name
     def get_host_name(self):

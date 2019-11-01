@@ -14,17 +14,23 @@ class ProductManager:
     # @param current_discount Discount on the product in percentage (float)
     @staticmethod
     def add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount = None):
-        # Check if discount is specified
-        if current_discount:
-            sql_stmt = "INSERT INTO `Products` \
-                        VALUES (%s, %s, %s, %s, %s, %s)"
-            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, current_discount))
-        else:
-            sql_stmt = "INSERT INTO `Products` (`ProductID`, `Name`, `Description`, `UnitPrice`, `UnitType`) \
-                        VALUES (%s, %s, %s, %s, %s)"
-            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type))
-        # Commit the changes
-        pysql.commit()
+        try:
+            # Check if discount is specified
+            if current_discount:
+                sql_stmt = "INSERT INTO `Products` \
+                            VALUES (%s, %s, %s, %s, %s, %s)"
+                pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, current_discount))
+            else:
+                sql_stmt = "INSERT INTO `Products` (`ProductID`, `Name`, `Description`, `UnitPrice`, `UnitType`) \
+                            VALUES (%s, %s, %s, %s, %s)"
+                pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type))
+            # Commit the changes
+            pysql.commit()
+        except:
+            # Print the error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object
@@ -32,13 +38,20 @@ class ProductManager:
     # @param discount New value of current discount
     @staticmethod
     def update_product_discount(pysql, product_id, discount):
-        # Update the current discount field
-        sql_stmt = "UPDATE `Products` \
-                    SET `CurrentDiscount` = %s \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (discount, product_id))
-        # Commit the changes
-        pysql.commit()
+        try:
+            # Update the current discount field
+            sql_stmt = "UPDATE `Products` \
+                        SET `CurrentDiscount` = %s \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (discount, product_id))
+
+            # Commit the changes
+            pysql.commit()
+        except:
+            # Print the error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object
@@ -46,13 +59,20 @@ class ProductManager:
     # @param price New value of unit price
     @staticmethod
     def update_product_price(pysql, product_id, price):
-        # Update the unit price field
-        sql_stmt = "UPDATE `Products` \
-                    SET `UnitPrice` = %s \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (price, product_id))
-        # Commit the changes
-        pysql.commit()
+        try:
+            # Update the unit price field
+            sql_stmt = "UPDATE `Products` \
+                        SET `UnitPrice` = %s \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (price, product_id))
+
+            # Commit the changes
+            pysql.commit()
+        except:
+            # Print the error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object
@@ -60,13 +80,20 @@ class ProductManager:
     # @param description New description for the product
     @staticmethod
     def update_description(pysql, product_id, description):
-        # Update the description field
-        sql_stmt = "UPDATE `Products` \
-                    SET `Description` = %s \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (description, product_id))
-        # Commit the changes
-        pysql.commit()
+        try:
+            # Update the description field
+            sql_stmt = "UPDATE `Products` \
+                        SET `Description` = %s \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (description, product_id))
+
+            # Commit the changes
+            pysql.commit()
+        except:
+            # Print the error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method checks if the given primary key is already
     #        present in the Products relation
@@ -76,10 +103,14 @@ class ProductManager:
     # @retval 1 The product id is already used
     @staticmethod
     def is_product_id_used(pysql, product_id):
-        # Get the product id of the given product
-        sql_stmt = "SELECT `ProductID` \
-                    FROM `Products` \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (product_id, ))
+        try:
+            # Get the product id of the given product
+            sql_stmt = "SELECT `ProductID` \
+                        FROM `Products` \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (product_id, ))
 
-        return len(pysql.get_results())
+            return len(pysql.get_results())
+        except:
+            # Print the error
+            pysql.print_error()

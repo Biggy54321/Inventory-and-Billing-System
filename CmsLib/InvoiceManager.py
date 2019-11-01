@@ -61,16 +61,30 @@ class InvoiceManager:
                         VALUES ('{}', %s, %s, %s, %s, %s)".format(invoice_id)
             pysql.run_many(sql_stmt, invoice_details)
 
+            # Make the assigned status false and make the invoice id null
+            sql_stmt = "UPDATE `Tokens` \
+                        SET `Assigned?` = false, \
+                            `InvoiceID` = NULL \
+                        WHERE `TokenID` = %s"
+            pysql.run_many(sql_stmt, token_ids)
+
+            # Remove all the products selected by this token
+            sql_stmt = "DELETE FROM `TokensSelectProducts` \
+                        WHERE `TokenID` = %s"
+            pysql.run_many(sql_stmt, token_ids)
+
             # Commit the changes
             pysql.commit()
 
             # Return the invoice id
             return invoice_id
         except:
-            # Revert the changes
-            pysql.rollback()
             # Restore the invoice id
             next_invoice_id -= 1
+            # Print the error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method updates the default values of GST and CGST
     # @param pysql PySql object
@@ -89,6 +103,8 @@ class InvoiceManager:
             # Commit the changes
             pysql.commit()
         except:
+            # Print the error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()
 
@@ -98,14 +114,20 @@ class InvoiceManager:
     # @param discount The discount amount given (float)
     @staticmethod
     def give_additional_discount(pysql, invoice_id, discount):
-        # Update the discount value
-        sql_stmt = "UPDATE `Invoices` \
-                    SET `DiscountGiven` = %s \
-                    WHERE `InvoiceID` = %s"
-        pysql.run(sql_stmt, (discount, invoice_id))
+        try:
+            # Update the discount value
+            sql_stmt = "UPDATE `Invoices` \
+                        SET `DiscountGiven` = %s \
+                        WHERE `InvoiceID` = %s"
+            pysql.run(sql_stmt, (discount, invoice_id))
 
-        # Commit the changes
-        pysql.commit()
+            # Commit the changes
+            pysql.commit()
+        except:
+            # Print the error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method prints the invoice for the specified InvoiceID
     # @param pysql PySql object

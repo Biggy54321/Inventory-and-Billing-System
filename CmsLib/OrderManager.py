@@ -51,10 +51,12 @@ class OrderManager:
             # Return the currently created order id
             return order_id
         except:
-            # Revert the changes
-            pysql.rollback()
             # Restore the order number
             next_order_id -= 1
+            # Print error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method gets the delivery status of the specified order
     # @param pysql PySql object
@@ -63,17 +65,20 @@ class OrderManager:
     # @retval 0 The order is not delivered or order id is not valid
     @staticmethod
     def get_order_status(pysql, order_id):
-        # Get the delivered status of the order
-        sql_stmt = "SELECT `Delivered?` \
-                    FROM `Orders` \
-                    WHERE `OrderID` = %s"
-        pysql.run(sql_stmt, (order_id, ))
-
-        # Return the boolean status
         try:
+            # Get the delivered status of the order
+            sql_stmt = "SELECT `Delivered?` \
+                        FROM `Orders` \
+                        WHERE `OrderID` = %s"
+            pysql.run(sql_stmt, (order_id, ))
+
+            # Return the boolean status
             return pysql.get_results()[0][0]
         except IndexError:
             return 0
+        except:
+            # Print error
+            pysql.print_error()
 
     # @brief This method cancels an order only if it is not delivered
     # @param pysql PySql object
@@ -99,6 +104,8 @@ class OrderManager:
                 # Commit the changes
                 pysql.commit()
         except:
+            # Print error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()
 
@@ -108,19 +115,29 @@ class OrderManager:
     # @param order_id OrderID of the order received (string)
     @staticmethod
     def receive_order(pysql, order_id):
-        # Get the order product details of the given order
-        sql_stmt = "SELECT `Quantity`, `ProductID` \
-                    FROM `OrdersOfProducts` \
-                    WHERE `OrderID` = %s"
-        pysql.run(sql_stmt, (order_id, ))
-        quantities_products = pysql.get_results()
-
         try:
-            # Add the received products into the stored quantities
+            # Get the quantities of those products which are already present
+            sql_stmt = "SELECT `Quantity`, `ProductID` \
+                        FROM `OrdersOfProducts` \
+                        WHERE `OrderID` = %s AND `ProductID` IN (SELECT `ProductID` \
+                                                                 FROM `Inventory`)"
+            pysql.run(sql_stmt, (order_id, ))
+            quantities_products = pysql.get_results()
+
+            # Add the quantities to the products already present in inventory
             sql_stmt = "UPDATE `Inventory` \
                         SET `StoredQuantity` = `StoredQuantity` + %s \
                         WHERE `ProductID` = %s"
             pysql.run_many(sql_stmt, quantities_products)
+
+            # Insert the products in the inventory if not present by default
+            # (set threshold to 10 percent of the order quantity)
+            sql_stmt = "INSERT INTO `Inventory` \
+                        (SELECT `ProductID`, `Quantity`, 0.0, Quantity * 0.1 \
+                         FROM `OrdersOfProducts` \
+                         WHERE `OrderID` = %s and `ProductID` NOT IN (SELECT `ProductID` \
+                                                                      FROM `Inventory`))"
+            pysql.run(sql_stmt, (order_id, ))
 
             # Mark the order delivered status as true
             sql_stmt = "UPDATE `Orders` \
@@ -135,6 +152,8 @@ class OrderManager:
             # Commit the changes
             pysql.commit()
         except:
+            # Print error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()
 

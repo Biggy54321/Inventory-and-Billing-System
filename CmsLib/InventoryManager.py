@@ -17,16 +17,21 @@ class InventoryManager:
     # @retval 0 When the quantity of the product is 0 / product does not exists
     @staticmethod
     def get_displayed_quantity(pysql, product_id):
-        # Get the displayed quantity of the product
-        sql_stmt = "SELECT `DisplayedQuantity` \
-                    FROM `Inventory` \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (product_id, ))
-
         try:
+            # Get the displayed quantity of the product
+            sql_stmt = "SELECT `DisplayedQuantity` \
+                        FROM `Inventory` \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (product_id, ))
+
+            # Return the quantity
             return pysql.get_results()[0][0]
         except IndexError:
+            # If product not present
             return 0
+        except:
+            # Print error
+            pysql.print_error()
 
     # @brief This method returns the stored (local inventory) quantity of the
     #        specified product
@@ -37,16 +42,20 @@ class InventoryManager:
     # @retval 0 When the quantity of the product is 0 / product does not exists
     @staticmethod
     def get_stored_quantity(pysql, product_id):
-        # Get the stored quantity of the product
-        sql_stmt = "SELECT `StoredQuantity` \
-                    FROM `Inventory` \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (product_id, ))
-
         try:
+            # Get the stored quantity of the product
+            sql_stmt = "SELECT `StoredQuantity` \
+                        FROM `Inventory` \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (product_id, ))
+
+            # Return the quantity
             return pysql.get_results()[0][0]
         except IndexError:
             return 0
+        except:
+            # Print error
+            pysql.print_error()
 
     # @brief This method checks if the specified product stored
     #        is below the set threshold
@@ -56,16 +65,20 @@ class InventoryManager:
     # @retval 0 If the product is not below threshold
     @staticmethod
     def is_below_threshold(pysql, product_id):
-        # Check if the stored quantity is less than equal the store threshold
-        sql_stmt = "SELECT `StoredQuantity` <= `StoreThreshold` \
-                    FROM `Inventory` \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (product_id, ))
-
         try:
+            # Check if the stored quantity is less than equal the store threshold
+            sql_stmt = "SELECT `StoredQuantity` <= `StoreThreshold` \
+                        FROM `Inventory` \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (product_id, ))
+
+            # Return boolean value
             return pysql.get_results()[0][0]
         except IndexError:
             return 0
+        except:
+            # Print error
+            pysql.print_error()
 
     # @brief This method updates the threshold value of the specified product
     # @param pysql PySql object
@@ -73,13 +86,19 @@ class InventoryManager:
     # @param threshold Threshold to be set for the product (float)
     @staticmethod
     def update_threshold(pysql, product_id, threshold):
-        # Set the value of threshold to the given argument
-        sql_stmt = "UPDATE `Inventory` \
-                    SET `StoreThreshold` = %s \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (threshold, product_id))
-        # Commit the changes
-        pysql.commit()
+        try:
+            # Set the value of threshold to the given argument
+            sql_stmt = "UPDATE `Inventory` \
+                        SET `StoreThreshold` = %s \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (threshold, product_id))
+            # Commit the changes
+            pysql.commit()
+        except:
+            # Print error
+            pysql.print_error()
+            # Revert the changes
+            pysql.rollback()
 
     # @brief This method removes the specified product quantity from the
     #        stored (local inventory) quantity and logs the transaction
@@ -96,11 +115,13 @@ class InventoryManager:
             pysql.run(sql_stmt, (quantity, product_id))
 
             # Log the transaction
-            self.log_transaction(pysql, "INV_SUB", product_id, quantity)
+            InventoryManager.log_transaction(pysql, "INV_SUB", product_id, quantity)
 
             # Commit the changes
             pysql.commit()
         except:
+            # Print error
+            pysql.print_error()
             # Revert the changes
             pysql.rollback()
 
@@ -136,3 +157,5 @@ class InventoryManager:
         except:
             # Restore the transaction id
             next_transaction_id -= 1
+            # Print error
+            pysql.print_error()
