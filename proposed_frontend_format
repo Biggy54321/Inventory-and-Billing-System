@@ -1,0 +1,21 @@
+There will be 3 ends on which front end will be operated : 
+
+1. Inventory Manager
+2. Counter Operator
+3. Bill Desk
+
+1. Inventory Manager
+
+    - takes care of orders placed by warehouse
+    - enters info about all the inventory transactions
+    - all information about inventory is visible to this guy
+    
+2. Counter Operator
+
+    - handles all operations happening at counter of the shop
+    - transfers products from counter to token
+
+3. Bill Desk
+
+    - responsible for actually making the invoice
+    - transfers products from token to invoice
