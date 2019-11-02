@@ -3,6 +3,7 @@ There will be 3 ends on which front end will be operated :
 1. Inventory Manager
 2. Counter Operator
 3. Bill Desk
+4. Token Manager
 
 1. Inventory Manager
 
@@ -19,3 +20,8 @@ There will be 3 ends on which front end will be operated :
 
     - responsible for actually making the invoice
     - transfers products from token to invoice
+    
+4. Token Manager
+
+    - responsible for managing tokens
+    - responsible for assigning tokens to customers and collecting them from billdesk
