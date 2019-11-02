@@ -1,0 +1,61 @@
+Contains functions to manipulate Inventory
+
+1. get_displayed_quantity(pysql, product_id) : 
+
+    - returns the displayed quantity corresponding to given product_id
+    - returns 0 if displayed quantity is 0 or product_id does not exist
+
+    pysql : PySql object for current database
+
+    product_id : id of the product in question
+
+2. get_stored_quantity(pysql, product_id) : 
+
+    - returns the stored quantity corresponding to given product_id
+    - returns 0 if displayed quantity is 0 or product_id does not exist
+
+    pysql : PySql object for current database
+
+    product_id : id of the product in question
+
+3. is_below_threshold(pysql, product_id) : 
+
+    - checks whether stored quantity of the product is below store threshold
+    - returns 1 if true
+    - returns 0 if false
+
+    pysql : PySql object for current database
+
+    product_id : id of the product in question
+
+4. update_threshold(pysql, product_id, threshold) : 
+
+    - updates the store threshold of the product in the Inventory
+
+    pysql : PySql object for current database
+
+    product_id : id of the product in question
+
+5. sub_product_from_inventory(pysql, product_id, quantity) :
+
+    - updates the store quantity attribute of Inventory by subtracting 'quantity' from existing store quantity
+    - does nothing if there is an error in the product_id or quantity
+    - logs transaction if the inventory is updated successfully
+
+    pysql : PySql object for current database
+
+    product_id : id of the product in question
+
+    quantity : quantity of the product to be subtracted (Numeric(9, 3))
+
+6. log_transaction(pysql, transaction_type, product_id, quantity) : 
+
+    - updates the transaction log
+
+    pysql : PySql object for current database
+
+    transaction_type : type of transaction ('INV_SUB', ) (string)
+
+    prod_id : id of the product in question
+
+    quantity : quantity of product (Numeric(9, 3))

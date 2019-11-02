@@ -1,0 +1,43 @@
+Manages orders given by local warehouse to global warehouse
+
+1. place_order(pysql, product_quantities) : 
+
+    - places order to global warehouse for given quantities of products
+    - returns the id of the order placed, if the transaction was successful
+    - prints the error if there is error in inputs
+
+    pysql : PySql object of current database
+
+    product_quantities : list of (product_id, quantity) tuples to be included in this order (list of tuples)
+
+2. get_order_status(pysql, order_id) : 
+
+    - returns True if order is delivered
+    - returns False if order is not delivered
+    - prints error if there is error in inputs or order_id does not exist
+
+    pysql : PySql object of current database
+
+    order_id : id of the order whose status is to be checked (string)
+
+3. cancel_order(pysql, order_id) : 
+
+    - cancels the order if it is not yet delivered
+    - if delivered, does nothing
+    - if there is error in input or order_id does not exist, prints error
+
+    pysql : PySql object of current database
+    
+    order_id : id of the order which is to be cancelled (string)
+
+4. receive_order(pysql, order_id) : 
+
+    - receives order and updates the Inventory with corresponding quantity of products in the order
+    - adds a product in the Inventory with order quantity and default threshold of 10 percent if
+        the product is not present in Inventory
+    - logs the transaction in Inventory Transactions
+    - if there is error in input or order does not exist, prints the error
+
+    pysql : PySql object of current database
+
+    order_id : id of the order received (string)

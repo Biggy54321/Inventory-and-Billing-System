@@ -1,0 +1,48 @@
+This module deals with all the manipulation to be done to the Products table
+
+1. add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount = None) :
+
+    - Adds new product to global product inventory
+
+    pysql : PySql object for current database
+
+    product_id : id of product (string) (Expected syntax : ABC-01)
+
+    name : Name of the product to be added which will be displayed to the user (string)
+
+    description : Describe the product in less than 64 characters (string)
+
+    unit_price : Price per unit of the product (float)
+
+    unit_type : "kg" or "pcs" (string)
+
+    current_discount(optional) : percentage discount to be offered on the final price of the product(float)
+
+2. update_product_discount(pysql, product_id, discount) : 
+
+    - update the current discount field of product
+
+    pysql : PySql object of current database
+
+    product_id : id of target product
+
+    discount : updated value of current discount(float)
+
+3. update_product_price(pysql, product_id, price) : 
+
+    - update the unit price field of product
+
+    pysql : PySql object of current database
+
+    product_id : id of target product
+
+    price : updated value of the unit price of the product(float)
+
+4. is_product_id_used(pysql, product_id) : 
+
+    - checks if the given product_id is already been used by another product. Returns a 
+      boolean. 0 means not used. 1 means used.
+
+    pysql : PySql object of current database
+
+    product_id : the id to be cross-checked with local database
