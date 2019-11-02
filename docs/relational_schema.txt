@@ -39,7 +39,8 @@ InventoryTransactions(TransactionID,
 Orders(OrderID,
        -------
        OrderDate,
-       Delivered?);
+       Delivered?,
+       Cancelled?);
 
 OrdersOfProducts(OrderID,       # many-to-many relationship
                  -------

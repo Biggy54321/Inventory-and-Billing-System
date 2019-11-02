@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS Orders (
        `OrderID`    CHAR(14),
        `OrderDate`  DATETIME,
        `Delivered?` BOOLEAN DEFAULT FALSE,
+       `Cancelled?` BOOLEAN DEFAULT FALSE,
        CONSTRAINT `Orders_PK_FMT` CHECK (OrderID REGEXP "^ORD-[0-9]{10}$"),
        CONSTRAINT `Orders_PK` PRIMARY KEY (OrderID)
 );
