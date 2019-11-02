@@ -115,7 +115,7 @@ class InventoryManager:
             pysql.run(sql_stmt, (quantity, product_id))
 
             # Log the transaction
-            InventoryManager.log_transaction(pysql, "INV_SUB", product_id, quantity)
+            InventoryManager.log_transaction(pysql, "INVENTORY_SUB", product_id, quantity)
 
             # Commit the changes
             pysql.commit()
@@ -157,5 +157,78 @@ class InventoryManager:
         except:
             # Restore the transaction id
             next_transaction_id -= 1
+            # Print error
+            pysql.print_error()
+
+    # @brief This method returns the details of all the products
+    #        in the inventory
+    # @param pysql PySql object
+    # @retval List of tuples of format (ProductID, Name, StoredQuantity, DisplayedQuantity, StoreThreshold, UnitType)
+    @staticmethod
+    def get_inventory_details(pysql):
+        try:
+            # Get the product details of othe entire inventory
+            sql_stmt = "SELECT `ProductID`, `Name`, `StoredQuantity`, `DisplayedQuantity`, `StoreThreshold`, `UnitType` \
+                        FROM `Products` JOIN `Inventory` USING (`ProductID`)"
+            pysql.run(sql_stmt)
+
+            # Return the results
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()
+
+    # @brief This method returns the all transactions
+    # @param pysql PySql object
+    # @retval List of tuples of format (TransactionID, ProductID, Name, TransactionType, Quantity, UnitType, Timestamp)
+    @staticmethod
+    def get_transactions(pysql):
+        try:
+            sql_stmt = "SELECT `TransactionID`, `ProductID`, `Name`, `TransactionType`, `Quantity`, `UnitType`, `Timestamp` \
+                        FROM `InventoryTransactions` JOIN `Products` USING (`ProductID`)"
+            pysql.run(sql_stmt)
+            # Return the results
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()
+
+    # @brief This method returns the transactions made on a particular day
+    # @param pysql PySql object
+    # @param date Date on which the transactions are to be found
+    #             (string of format "YYYY-MM-DD")
+    # @retval List of tuples of format (TransactionID, ProductID, Name, TransactionType, Quantity, UnitType, Timestamp)
+    @staticmethod
+    def get_transactions_by_date(pysql, date):
+        try:
+            # Get the transactions made on that date
+            sql_stmt = "SELECT `TransactionID`, `ProductID`, `Name`, `TransactionType`, `Quantity`, `UnitType`, `Timestamp` \
+                        FROM `InventoryTransactions` JOIN `Products` USING (`ProductID`) \
+                        WHERE DATE(`Timestamp`) = %s"
+            pysql.run(sql_stmt, (date, ))
+            # Return the results
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()
+
+    # @brief This method returns all the transactions of the product
+    #        on a given day
+    # @param pysql PySql object
+    # @param product_id ProductID
+    # @param date Day on which the transactions are to be found ("YYYY-MM-DD")
+    # @retval List of tuples of format (TransactionID, TransactionType, Quantity, Timestamp)
+    @staticmethod
+    def get_transactions_of_product_by_date(pysql, product_id, date):
+        try:
+            # Get the transaction details of the products on the given date
+            sql_stmt = "SELECT `TransactionID`, `TransactionType`, `Quantity`, `Timestamp` \
+                        FROM `InventoryTransactions` \
+                        WHERE `ProductID` = %s AND DATE(`Timestamp`) = %s"
+            pysql.run(sql_stmt, (product_id, date))
+
+            # Return the result
+            return pysql.get_results()
+        except:
             # Print error
             pysql.print_error()

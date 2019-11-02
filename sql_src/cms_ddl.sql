@@ -18,13 +18,14 @@ DROP TABLE IF EXISTS ProductsInInvoices;
 
 CREATE TABLE IF NOT EXISTS Products (
        `ProductID`       CHAR(6),
-       `Name`            VARCHAR(16),
+       `Name`            VARCHAR(16) NOT NULL,
        `Description`     VARCHAR(64),
        `UnitPrice`       NUMERIC(9, 3) UNSIGNED,
        `UnitType`        ENUM ("kg", "pcs"),
        `CurrentDiscount` NUMERIC(4, 2) UNSIGNED DEFAULT 0,
        CONSTRAINT `Products_PK_FMT` CHECK (ProductID REGEXP "^[A-Z]{3}-[0-9]{2}$"),
        CONSTRAINT `Products_CUR_DSCT_FMT` CHECK (CurrentDiscount < UnitPrice),
+       CONSTRAINT `Products_NAME_FMT` UNIQUE (Name),
        CONSTRAINT `Products_PK` PRIMARY KEY (ProductID)
 );
 
@@ -68,7 +69,7 @@ CREATE TABLE IF NOT EXISTS Orders (
 
 CREATE TABLE IF NOT EXISTS InventoryTransactions (
        `TransactionID`   CHAR(14),
-       `TransactionType` ENUM ("CTR_SUB", "CTR_ADD", "INV_SUB", "INV_ADD", "INV_TO_CTR"),
+       `TransactionType` ENUM ("COUNTER_SUB", "COUNTER_ADD", "INVENTORY_SUB", "INVENTORY_ADD", "INVENTORY_TO_COUNTER"),
        `ProductID`       CHAR(6),
        `Quantity`        NUMERIC(9, 3) UNSIGNED,
        `Timestamp`       DATETIME,

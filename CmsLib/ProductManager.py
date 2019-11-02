@@ -114,3 +114,40 @@ class ProductManager:
         except:
             # Print the error
             pysql.print_error()
+
+    # @brief This method returns all the products information
+    # @param pysql PySql object
+    # @retval List of Tuples of format (ProductID, Name, Description, UnitPrice, UnitType, CurrentDiscount)
+    @staticmethod
+    def get_all_products(pysql):
+        try:
+            # Get the product id of the given product
+            sql_stmt = "SELECT * \
+                        FROM `Products`"
+            pysql.run(sql_stmt)
+
+            # Return the result
+            return len(pysql.get_results())
+        except:
+            # Print the error
+            pysql.print_error()
+
+    # @brief This method returns the product if from the name of the product
+    # @param pysql PySql object
+    # @param name Product name
+    # @retval ProductID
+    @staticmethod
+    def get_product_id_from_name(pysql, name):
+        try:
+            # Get the product id of the given product
+            sql_stmt = "SELECT `ProductID` \
+                        FROM `Products` \
+                        WHERE `Name` = %s"
+            pysql.run(sql_stmt, (name, ))
+
+            # Return the result
+            return pysql.get_results()[0][0]
+        except:
+            # Print the error
+            pysql.print_error()
+

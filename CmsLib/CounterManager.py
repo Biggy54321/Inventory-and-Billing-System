@@ -1,5 +1,6 @@
 # Import the required modules
 from CmsLib.InventoryManager import *
+from CmsLib.TokenManager import *
 
 # @brief This class is used to handle the counter management in CMS
 # @note  There is not need to create an object of this class as all
@@ -33,7 +34,7 @@ class CounterManager:
             pysql.run(sql_stmt, (token_id, product_id, quantity))
 
             # Log the transaction
-            InventoryManager.log_transaction(pysql, "CTR_SUB", product_id, quantity)
+            InventoryManager.log_transaction(pysql, "COUNTER_SUB", product_id, quantity)
 
             # Commit the changes
             pysql.commit()
@@ -60,7 +61,7 @@ class CounterManager:
             pysql.run(sql_stmt, (quantity, quantity, product_id))
 
             # Log the transaction
-            InventoryManager.log_transaction(pysql, "INV_TO_CTR", product_id, quantity)
+            InventoryManager.log_transaction(pysql, "INVENTORY_TO_COUNTER", product_id, quantity)
 
             # Commit the changes
             pysql.commit()
@@ -99,7 +100,7 @@ class CounterManager:
             pysql.run(sql_stmt, (quantity, product_id))
 
             # Log the transaction
-            InventoryManager.log_transaction(pysql, "CTR_ADD", product_id, quantity)
+            InventoryManager.log_transaction(pysql, "COUNTER_ADD", product_id, quantity)
             # Commit the changes
             pysql.commit()
         except IndexError:

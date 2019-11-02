@@ -43,7 +43,6 @@ class OrderManager:
             # Add the products for the order
             sql_stmt = "INSERT INTO `OrdersOfProducts` \
                         VALUES ('{}', %s, %s)".format(order_id)
-            print(products_quantities)
             pysql.run_many(sql_stmt, products_quantities)
 
             # Commit the changes
@@ -134,15 +133,14 @@ class OrderManager:
             return
 
         try:
-            # Get the quantities of those products which are already present
+            # Get all the products and quantities of the given order
             sql_stmt = "SELECT `Quantity`, `ProductID` \
                         FROM `OrdersOfProducts` \
-                        WHERE `OrderID` = %s AND `ProductID` IN (SELECT `ProductID` \
-                                                                 FROM `Inventory`)"
+                        WHERE `OrderID` = %s"
             pysql.run(sql_stmt, (order_id, ))
             quantities_products = pysql.get_results()
 
-            # Add the quantities to the products already present in inventory
+            # Update the quantities of all the products that are already present
             sql_stmt = "UPDATE `Inventory` \
                         SET `StoredQuantity` = `StoredQuantity` + %s \
                         WHERE `ProductID` = %s"
@@ -165,7 +163,7 @@ class OrderManager:
 
             # Log the transactions
             for pair in quantities_products:
-                InventoryManager.log_transaction(pysql, "INV_ADD", pair[1], pair[0])
+                InventoryManager.log_transaction(pysql, "INVENTORY_ADD", pair[1], pair[0])
 
             # Commit the changes
             pysql.commit()
@@ -175,3 +173,56 @@ class OrderManager:
             # Revert the changes
             pysql.rollback()
 
+    # @brief This function returns all the order till date
+    # @param pysql PySql object
+    # @retval List of tuples of format (OrderID, OrderDate, Delivered?, Cancelled?)
+    @staticmethod
+    def get_orders(pysql):
+        try:
+            # Get all the orders
+            sql_stmt = "SELECT * \
+                        FROM `Orders`"
+            pysql.run(sql_stmt)
+
+            # Return the result
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()
+
+    # @brief This function returns the products in the orders
+    # @param pysql PySql object
+    # @param order_id OrderId to get the details of
+    # @retval List of tuples of format (ProductID, Name, Quantity, UnitType)
+    @staticmethod
+    def get_order_details(pysql, order_id):
+        try:
+            # Get the products in the given order
+            sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitType` \
+                        FROM `OrdersOfProducts` JOIN `Products` USING (`ProductID`) \
+                        WHERE `OrderID` = %s"
+            pysql.run(sql_stmt, (order_id, ))
+
+            # Return the result
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()
+
+    # @brief This function returns all the order till between the two dates
+    # @param pysql PySql object
+    # @retval List of tuples of format (OrderID, OrderDate, Delivered?, Cancelled?)
+    @staticmethod
+    def get_orders_between_date(pysql, start_date, end_date):
+        try:
+            # Get all the orders between the given date
+            sql_stmt = "SELECT * \
+                        FROM `Orders` \
+                        WHERE DATE(`OrderDate`) BETWEEN %s AND %s"
+            pysql.run(sql_stmt, (start_date, end_date))
+
+            # Return the result
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()

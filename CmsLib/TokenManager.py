@@ -115,3 +115,21 @@ class TokenManager:
             pysql.print_error()
             # Revert the changes
             pysql.rollback()
+
+    # @brief This method returns the all the tokens assignment status
+    #        specified token
+    # @param pysql PySql object
+    # @retval List of tuple of format (TokenID, Assigned?)
+    # @retval List of tuple of format (TokenID, Assigned?)
+    @staticmethod
+    def get_all_tokens_status(pysql):
+        try:
+            # Get the all the products of the given token
+            sql_stmt = "SELECT `TokenID`, `Assigned?` \
+                        FROM `Tokens`"
+            pysql.run(sql_stmt, (token_id, ))
+
+            return pysql.get_results()
+        except:
+            # Print error
+            pysql.print_error()

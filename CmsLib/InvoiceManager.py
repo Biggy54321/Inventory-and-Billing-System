@@ -1,3 +1,6 @@
+# Import the required libraries
+from CmsLib.TokenManager import *
+
 # This variable stores the next InvoiceID integer
 next_invoice_id = None
 # This variable indicates whether the next_invoice_id has been initialized
