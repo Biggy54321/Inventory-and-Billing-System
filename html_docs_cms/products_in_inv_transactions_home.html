@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Product ID and date for Transactions</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <form method="GET" action="">
+            <br>From Date : 
+            <input type="date" name="transactions_from_date"><br><br>
+            <br>To Date : 
+            <input type="date" name="transactions_to_date"><br><br>
+            Product : <br>
+            <input list="product_names" name="product_name">
+            <datalist id="product_names">
+                {% for element in products %}
+                <option>{{ element }}</option>
+                {% end for %}
+            </datalist><br><br>
+            <input type="submit" name="submit" value="Submit" class="button">
+        </form>
+        <a href="inventory_manager_home.html" class="button">Back</a>
+    </body>
+</html>

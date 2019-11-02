@@ -1,0 +1,13 @@
+Should be able to : 
+1. Place orders to global warehouse
+2. Receive orders from global warehouse
+3. Cancel an order
+4. Increase / Decrease store quantity
+5. Increase display quantity
+6. Be able to view entire inventory
+7. Be able to view products
+8. Show contents of a particular order and its status
+9. Show all orders of given day
+10. Show log of inventory transactions of given day
+11. All product + quantity pairs corresponding to particular product on given day in orders
+12. All product + quantity pairs corresponding to particular product on given day in inventory transactions
