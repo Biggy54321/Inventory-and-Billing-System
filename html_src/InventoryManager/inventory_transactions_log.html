@@ -4,17 +4,21 @@
         <thead>
             <tr>
                 <th>Transaction ID</th>
-                <th>Transaction Type</th>
                 <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Transaction Type</th>
                 <th>Quantity</th>
-                <th>Time of transaction</th>
+                <th>Unit Type</th>
+                <th>Time Stamp</th>
+
             </tr>
         </thead>
         <tbody>
-            {% for row in order_details %}
+            {% for row in transaction_details %}
             <tr>
                 {% for d in row %}
                 <td>{{ d }}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </tbody>

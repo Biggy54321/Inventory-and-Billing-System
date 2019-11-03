@@ -39,56 +39,98 @@ def load_inventory_modules():
     
 @app.route('/InventoryManager/PlaceOrder', methods = ['GET', 'POST'])
 def place_order():
-    order_details = list()
-    product_ = pysql.run('SELECT * FROM products')
-    #product_ = ProductManager.get_all_products(pysql)
-    '''print (product_)
+    pysql.connect_py_sql()
+    product_ = ProductManager.get_all_products(pysql)
     product_data = [(each[0], each[1], each[4]) for each in product_]
     if request.method == 'POST':
-        if 'add_product' in request.form:
-            order_details.append((request.form['product_id'], request.form['quantity']))
-        elif 'place_order' in request.form:
+        order_details = list()
+        quantities = request.form.getlist("quantity[]")
+        print ("*******************", quantities)
+        for i in range(len(product_)):
+            if quantities[i]:
+                quantity = float(quantities[i])
+                
+                if quantity:
+                    order_details.append((product_[i][0], quantity))
+        if order_details:
             order_id = OrderManager.place_order(pysql, order_details)
-            return render_template('/InventoryManager/success_placed.html', order_id = order_id)'''
-    return render_template('/InventoryManager/place_order.html', product_data = product_data)
+            return render_template('/InventoryManager/success_placed.html', order_id = order_id)
+        else:
+            return redirect('/InventoryManager')
+    else:
+        return render_template('/InventoryManager/place_order.html', product_data = product_data)
 
 @app.route('/InventoryManager/ReceiveOrder', methods = ['GET', 'POST'])
 def receive_order():
+    pysql.connect_py_sql()
     if request.method == 'POST':
         order_id = request.form['order_id']
         OrderManager.receive_order(pysql, order_id)
         return redirect('/InventoryManager')
+    else:
+        return render_template('/InventoryManager/receive_order.html')
 
 @app.route('/InventoryManager/CancelOrder', methods = ['GET', 'POST'])
 def cancel_order():
+    pysql.connect_py_sql()
     if request.method == 'POST':
-        order_id = request.form['order_id']
+        order_id = request.form['order_id'].strip()
         OrderManager.cancel_order(pysql, order_id)
         return redirect('/InventoryManager')
+    else:
+        return render_template('/InventoryManager/cancel_order.html')
 
-'''@app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
-def place_order():
-    pass
+@app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
+def view_inventory():
+    pysql.connect_py_sql()
+    data = InventoryManager.get_inventory_details(pysql)
+    return render_template('/InventoryManager/view_inventory.html', data=data)
+    
 
 @app.route('/InventoryManager/ViewProducts', methods = ['GET', 'POST'])
-def place_order():
-    pass
+def view_products():
+    pysql.connect_py_sql()
+    data = ProductManager.get_all_products(pysql)
+    return render_template('/InventoryManager/view_products.html', data=data)
 
 @app.route('/InventoryManager/OrderDetails', methods = ['GET', 'POST'])
-def place_order():
-    pass
+def order_details():
+    pysql.connect_py_sql()
+    if request.method == 'POST':
+        order_id = request.form['order_id']
+        order_status, order_details = OrderManager.get_order_details(pysql, order_id)
+        return render_template('/InventoryManager/order_details.html', order_status=order_status, order_details=order_details)
+    else:
+        return render_template('/InventoryManager/order_details_home.html')
 
 @app.route('/InventoryManager/DailyOrders', methods = ['GET', 'POST'])
-def place_order():
-    pass
+def daily_orders():
+    pysql.connect_py_sql()
+    if request.method == 'POST':
+        start_date, end_date = request.form['orders_from_date'], request.form['orders_to_date']
+        order_details = OrderManager.get_orders_between_date(pysql, start_date, end_date)
+        return render_template('/InventoryManager/day_specific_orders.html', order_details=order_details)
+    else:
+        return render_template('/InventoryManager/daily_orders_home.html')
 
 @app.route('/InventoryManager/TransactionLog', methods = ['GET', 'POST'])
-def place_order():
-    pass
-'''
+def transaction_log():
+    pysql.connect_py_sql()
+    transaction_details = InventoryManager.get_transactions(pysql)
+    return render_template('/InventoryManager/inventory_transactions_log.html', transaction_details=transaction_details)
+
 @app.route('/InventoryManager/ProductsInInvTransactions', methods = ['GET', 'POST'])
-def fn():
-    pass
+def transactions_of_product_on_date():
+    pysql.connect_py_sql()
+    products = ProductManager.get_all_products(pysql)
+    products = [each[1] for each in products]
+    if request.method == 'POST':
+        on_date, product_name = request.form['transactions_on_date'], request.form['product_name']
+        product_id = ProductManager.get_product_id_from_name(pysql, product_name)
+        data = InventoryManager.get_transactions_of_product_by_date(pysql, product_id, on_date)
+        return render_template('/InventoryManager/products_in_inv_transactions.html', data=data)
+    else:
+        return render_template('/InventoryManager/products_in_inv_transactions_home.html', products=products)
 
 
 

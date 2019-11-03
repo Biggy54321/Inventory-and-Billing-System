@@ -6,12 +6,14 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
+        <form action="" method="POST">
         <table>
             <thead>
                 <tr>
                     <th>Product ID</th>
                     <th>Name</th>
                     <th>Unit Type</th>
+                    <th>Quantity</th>
                 </tr>    
             </thead>
             <tbody>
@@ -22,15 +24,14 @@
                         {{ d }}
                     </td>
                     {% endfor %}
+                    <td>
+                        <input type = "text" name = "quantity[]" value = "0">
+                    </td>
                 </tr>
 
                 {% endfor %}
             </tbody>
         </table><br><br><br>
-        <form action="" method="POST">
-            Product ID : <input type="text" name="product_id"><br><br>
-            Quantity : <input type="text" name="quantity"><br><br>
-            <input type="submit" name="add_product" value="Add Product to Order" class = "button"><br>
             <input type="submit" name="place_order" value="Place Order" class = "button"><br>
         </form>
     </body>
