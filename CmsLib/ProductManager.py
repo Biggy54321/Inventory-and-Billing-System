@@ -127,7 +127,7 @@ class ProductManager:
             pysql.run(sql_stmt)
 
             # Return the result
-            return len(pysql.get_results())
+            return pysql.get_results()
         except:
             # Print the error
             pysql.print_error()

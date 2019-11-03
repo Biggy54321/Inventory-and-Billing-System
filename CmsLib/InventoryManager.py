@@ -202,7 +202,7 @@ class InventoryManager:
     def get_transactions_by_date(pysql, date):
         try:
             # Get the transactions made on that date
-            sql_stmt = "SELECT `TransactionID`, `ProductID`, `Name`, `TransactionType`, `Quantity`, `UnitType`, `Timestamp` \
+            sql_stmt = "SELECT `TransactionID`, `ProductID`, `Name`, `TransactionType`, `Quantity`, `UnitType`, TIME(`Timestamp`) \
                         FROM `InventoryTransactions` JOIN `Products` USING (`ProductID`) \
                         WHERE DATE(`Timestamp`) = %s"
             pysql.run(sql_stmt, (date, ))
@@ -222,7 +222,7 @@ class InventoryManager:
     def get_transactions_of_product_by_date(pysql, product_id, date):
         try:
             # Get the transaction details of the products on the given date
-            sql_stmt = "SELECT `TransactionID`, `TransactionType`, `Quantity`, `Timestamp` \
+            sql_stmt = "SELECT `TransactionID`, `TransactionType`, `Quantity`, TIME(`Timestamp`) \
                         FROM `InventoryTransactions` \
                         WHERE `ProductID` = %s AND DATE(`Timestamp`) = %s"
             pysql.run(sql_stmt, (product_id, date))

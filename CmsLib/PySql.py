@@ -1,5 +1,6 @@
 # Import the required modules
-from mysql.connector import connect, ProgrammingError, InterfaceError
+from flask_mysqldb import MySQL
+import yaml
 import sys
 
 # @brief This class can be used to connect python to sql and to run
@@ -7,58 +8,46 @@ import sys
 class PySql:
 
     # @brief This method initializes the PySql object
-    # @param user_name Host user name
-    # @param pass_word Host password
-    # @param db_name Database name
-    # @param host_name Host server name
-    def __init__(self, user_name, pass_word, db_name, host_name = "localhost"):
-        self.user_name = user_name
-        self.__pass_word = pass_word
-        self.db_name = db_name
-        self.host_name = host_name
-        self.database = None
-        self.cursor = None
-        self.last_result = None
+    # @param flask_app Flask object to be initialized
+    # @param path_to_yaml Path to the .yaml file
+    def __init__(self, flask_app, path_to_yaml):
 
-    # @brief This method connects python to mysql and initializes the handle
-    def connect_py_sql(self):
-        try:
-            # Connect to the mysql database
-            self.database = connect(host = self.host_name,
-                                    user = self.user_name,
-                                    passwd = self.__pass_word,
-                                    db = self.db_name,)
-            # Create the mysql cursor to execute queries
-            self.cursor = self.database.cursor()
-        except InterfaceError:
-            # Signal the user
-            print("** Host name incorrect")
-            sys.exit()
-        except ProgrammingError:
-            # Signal the user
-            print("** User name, Password or Database name incorrect")
-            sys.exit()
+        # Load the yaml file
+        db_details = yaml.load(open(path_to_yaml))
+
+        # Configure the flask object
+        flask_app.config['MYSQL_HOST'] = db_details['mysql_host']
+        flask_app.config['MYSQL_USER'] = db_details['mysql_user']
+        flask_app.config['MYSQL_PASSWORD'] = db_details['mysql_password']
+        flask_app.config['MYSQL_DB'] = db_details['mysql_db']
+
+        # Create the mysql object
+        self.mysql = MySQL(flask_app)
+        # Create mysql cursor object
+        self.mysql_cursor = self.mysql.connection.cursor()
+        # Field to store the last select result
+        self.last_result = None
 
     # @brief This method executes a single sql query
     # @param sql_stmt The sql statement to be executed (string)
     # @param params The arguments for the sql_stmt (tuple)
     def run(self, sql_stmt, params = None):
         # Run the sql query
-        self.cursor.execute(sql_stmt, params)
+        self.mysql_cursor.execute(sql_stmt, params)
 
     # @brief This method executes the same sql query for each of the parameter
     # @param sql_stmt The sql statement to be executed (string)
     # @param params The arguments for the sql_stmt (list of tuples)
     def run_many(self, sql_stmt, params):
         # Run the sql query
-        self.cursor.executemany(sql_stmt, params)
+        self.mysql_cursor.executemany(sql_stmt, params)
 
     # @brief This method fetches the result of the previously ran sql query
     # @return last_result The result of the previously ran sql query
     def get_results(self):
         try:
             # Fetch the result
-            self.last_result = self.cursor.fetchall()
+            self.last_result = self.mysql_cursor.fetchall()
             # Save the result
             return self.last_result
         except InterfaceError:
@@ -68,12 +57,12 @@ class PySql:
     # @brief This method updates the remote database with the updates
     #        made to the local database
     def commit(self):
-         self.database.commit()
+         self.mysql.connection.commit()
 
     # @brief This method restores the local database with the remote
     #        database (hence ignoring any changes made to the local copy)
     def rollback(self):
-        self.database.rollback()
+        self.mysql.connection.rollback()
 
     # @brief This method indicates the error that has been raised
     def print_error(self):
@@ -88,18 +77,3 @@ class PySql:
 
         # Print the line number as error
         print("** Error occurred at line number {} in file {}".format(lineno, filename))
-
-    # @brief This method returns the host server name
-    # @return host_name The host server name
-    def get_host_name(self):
-        return self.host_name
-
-    # @brief This method returns the host user name
-    # @return user_name The host user name
-    def get_user_name(self):
-        return self.user_name
-
-    # @brief This method returns the database name
-    # @return db_name The database name
-    def get_database_name(self):
-        return self.db_name
