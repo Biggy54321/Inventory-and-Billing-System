@@ -56,6 +56,41 @@ Contains functions to manipulate Inventory
 
     transaction_type : type of transaction ('INV_SUB', ) (string)
 
-    prod_id : id of the product in question
+    prod_id : id of the product in question (string)
 
     quantity : quantity of product (Numeric(9, 3))
+
+7. get_inventory_details(pysql):
+
+    - returns prod_id, name, stored_quantity, displayed_quantity, threshold, unit_type of all products
+        in the inventory
+
+    pysql : PySql object of current database
+
+8. get_transactions(pysql):
+
+    - returns transaction_id, product_id, name, transaction_type, quantity, unit_type
+        of all transactions
+
+    pysql : PySql object of current database
+
+9. get_transactions_by_date(pysql, date):
+
+    - returns info same as get_transactions with timestamp for all transactions
+        on given date
+
+    pysql : PySql object of current database
+
+    date : date in format "YYYY-MM-DD" on which transactions are required (string)
+
+10. get_transactions_of_product_by_date(pysql, product_id, date)
+
+    - returns transaction_id, transaction_type, quantity, timestamp of transactions
+        of given product on given date
+
+    pysql : PySql object of current database
+
+    product_id : id of product required (string)
+
+    date : date in format "YYYY-MM-DD" on which transactions are required (string)
+

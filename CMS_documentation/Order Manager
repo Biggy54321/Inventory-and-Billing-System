@@ -41,3 +41,29 @@ Manages orders given by local warehouse to global warehouse
     pysql : PySql object of current database
 
     order_id : id of the order received (string)
+
+5. get_orders(pysql) : 
+
+    - returns order_id, order_date, delivered?, cancelled? for all orders
+
+    pysql : PySql object of current database
+
+6. get_order_details(pysql, order_id) : 
+
+    - returns product_id, name, quantity, unit_type for all 
+        products corresponding to given order
+
+    pysql : PySql object of current database
+
+    order_id : id of the order whose details are expected (stirng)
+
+7. get_orders_between_date(pysql, start_date, end_date):
+
+    - returns order_id, order_date, delivered?, calcelled? for all
+        orders lying between start date and end date
+
+    pysql : PySql object of current database
+
+    start_date : start date for searching for orders in format "YYYY-MM-DD" (string)
+
+    end_date : end date for searching for orders in format "YYYY-MM-DD" (string)

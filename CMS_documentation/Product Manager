@@ -46,3 +46,18 @@ This module deals with all the manipulation to be done to the Products table
     pysql : PySql object of current database
 
     product_id : the id to be cross-checked with local database
+
+5. get_all_products(pysql) : 
+
+    - returns product_id, name, description, unit_price, unit_type
+        and discount for all products in Products
+
+    pysql : PySql object of current database
+
+6. get_product_id_from_name(pysql, name) : 
+
+    - returns product_id corresponding to given product name
+
+    pysql : PySql object of current database
+
+    name : name of the product to be searched (string)
