@@ -1,0 +1,40 @@
+<h1>Order details : </h1><br><br>
+
+<table  border="1" cellpadding="5" cellspacing="5">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Order Date</th>
+            <th>Delivered?</th>
+            <th>Cancelled?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in order_details %}
+        <tr>
+            {% for d in row %}
+            <td>{{ d }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Products in the order : </h2><br><br>
+<table  border="1" cellpadding="5" cellspacing="5">
+    <thead>
+        <tr>
+            <th>Product ID</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Quantity Unit</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in products_in_order %}
+        <tr>
+            {% for d in row %}
+            <td>{{ d }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
