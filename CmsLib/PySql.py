@@ -13,7 +13,7 @@ class PySql:
     def __init__(self, flask_app, path_to_yaml):
 
         # Load the yaml file
-        db_details = yaml.load(open(path_to_yaml), Loader=yaml.FullLoader)
+        db_details = yaml.load(open(path_to_yaml), Loader = yaml.FullLoader)
 
         # Configure the flask object
         flask_app.config['MYSQL_HOST'] = db_details['mysql_host']
