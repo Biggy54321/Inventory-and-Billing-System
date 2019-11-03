@@ -14,106 +14,108 @@ class OrderManager:
     # @brief This method places an order of the requested products and
     #        adds the product details of the order
     # @param pysql PySql object
-    # @param products_quantities List of ProductIDs and Quantities (list of tuples)
-    # @retval order_id The OrderId for the current order (string)
+    # @param products_quantities (ProductID, Quantity) (list of tuples)
+    # @retval order_id The OrderId (string)
     @staticmethod
     def place_order(pysql, products_quantities):
         # Fetch the global variables
         global next_order_id
         global next_order_id_read
 
+        # Initialize the pysql object
+        pysql.init()
+
         # Initialize the next order id
         if not next_order_id_read:
             sql_stmt = "SELECT COUNT(*) \
                         FROM `Orders`"
             pysql.run(sql_stmt)
-            next_order_id = pysql.get_results()[0][0]
+            next_order_id = pysql.scalar_result
             next_order_id_read = 1
 
         # Create the order id
         order_id = "ORD-" + format(next_order_id, "010d")
+
+        # Create the new order
+        sql_stmt = "INSERT INTO `Orders` (`OrderID`, `OrderDate`) \
+                    VALUES (%s, (SELECT CURRENT_TIMESTAMP))"
+        pysql.run(sql_stmt, (order_id, ))
+
+        # Add the products for the order
+        sql_stmt = "INSERT INTO `OrdersOfProducts` \
+                    VALUES ('{}', %s, %s)".format(order_id)
+        pysql.run_many(sql_stmt, products_quantities)
+
+        # Commit the changes
+        pysql.commit()
+
+        # Increment the global order id count
         next_order_id += 1
 
-        try:
-            # Create the new order
-            sql_stmt = "INSERT INTO `Orders` (`OrderID`, `OrderDate`) \
-                        VALUES (%s, (SELECT CURRENT_TIMESTAMP))"
-            pysql.run(sql_stmt, (order_id, ))
+        # Deinitialize the pysql object
+        pysql.deinit()
 
-            # Add the products for the order
-            sql_stmt = "INSERT INTO `OrdersOfProducts` \
-                        VALUES ('{}', %s, %s)".format(order_id)
-            pysql.run_many(sql_stmt, products_quantities)
-
-            # Commit the changes
-            pysql.commit()
-
-            # Return the currently created order id
-            return order_id
-        except:
-            # Restore the order number
-            next_order_id -= 1
-            # Print error
-            pysql.print_error()
-            # Revert the changes
-            pysql.rollback()
+        # Return the currently created order id
+        return order_id
 
     # @brief This method gets the delivery status of the specified order
     # @param pysql PySql object
-    # @param order_id The OrderID to check for (string)
-    # @retval (0, 0) The order is not delivered and is not cancelled
-    # @retval (0, 1) The order is not delivered and is cancelled
-    # @retval (1, 0) The order is delivered and is not cancelled
+    # @param order_id The OrderID (string)
+    # @retval (0, 0) Not delivered not cancelled
+    # @retval (0, 1) Not delivered but cancelled
+    # @retval (1, 0) Delivered and not cancelled
     # @retval (1, 1) OrderID not found
     @staticmethod
     def get_order_status(pysql, order_id):
-        try:
-            # Get the delivered status of the order
-            sql_stmt = "SELECT `Delivered?`, `Cancelled?` \
-                        FROM `Orders` \
-                        WHERE `OrderID` = %s"
-            pysql.run(sql_stmt, (order_id, ))
+        # Initialize the pysql object
+        pysql.init()
 
-            # Return the boolean tuple
-            return pysql.get_results()[0]
-        except IndexError:
+        # Get the delivered status of the order
+        sql_stmt = "SELECT `Delivered?`, `Cancelled?` \
+                    FROM `Orders` \
+                    WHERE `OrderID` = %s"
+        pysql.run(sql_stmt, (order_id, ))
+
+        # Get order status
+        order_status = pysql.result[0]
+
+        # Deinitialize the pysql object
+        pysql.deinit()
+
+        # If order status not found
+        if not order_status:
             return (1, 1)
-        except:
-            # Print error
-            pysql.print_error()
+
+        return order_status
 
     # @brief This method cancels an order only if it is not delivered
     #        and not already cancelled
     # @param pysql PySql object
-    # @param order_id The OrderID to check for (string)
+    # @param order_id OrderID (string)
     @staticmethod
     def cancel_order(pysql, order_id):
+        # Initialize the pysql object
+        pysql.init()
+
         # Get the order status
         is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
 
-        # If order is already delivered
-        if is_delivered:
+        # If order is already delivered or cancelled
+        if is_delivered or is_cancelled:
             return
 
-        # If it is already cancelled
-        if is_cancelled:
-            return
+        # Set the status of order as cancelled and delivered as NULL
+        sql_stmt = "UPDATE `Orders` \
+                    SET `Delivered?` = 0, \
+                        `Cancelled?` = 1 \
+                    WHERE `OrderID` = %s"
+        pysql.run(sql_stmt, (order_id, ))
 
-        try:
-            # Set the status of order as cancelled and delivered as NULL
-            sql_stmt = "UPDATE `Orders` \
-                        SET `Delivered?` = 0, \
-                            `Cancelled?` = 1 \
-                        WHERE `OrderID` = %s"
-            pysql.run(sql_stmt, (order_id, ))
+        # Commit the changes
+        pysql.commit()
 
-            # Commit the changes
-            pysql.commit()
-        except:
-            # Print error
-            pysql.print_error()
-            # Revert the changes
-            pysql.rollback()
+        # Deinitialize the pysql object
+        pysql.deinit()
 
     # @brief This method receives the order i.e. updates the stored
     #        inventory quantities and marks the order as delivered
@@ -121,116 +123,125 @@ class OrderManager:
     # @param order_id OrderID of the order received (string)
     @staticmethod
     def receive_order(pysql, order_id):
+        # Initialize the pysql object
+        pysql.init()
+
         # Get the order status
         is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
 
-        # If order is already delivered
-        if is_delivered:
+        # If order is already delivered or cancelled
+        if is_delivered or is_cancelled:
             return
 
-        # If it is already cancelled
-        if is_cancelled:
-            return
+        # Get all the products and quantities of the given order
+        sql_stmt = "SELECT `Quantity`, `ProductID` \
+                    FROM `OrdersOfProducts` \
+                    WHERE `OrderID` = %s"
+        pysql.run(sql_stmt, (order_id, ))
+        quantities_products = pysql.result
 
-        try:
-            # Get all the products and quantities of the given order
-            sql_stmt = "SELECT `Quantity`, `ProductID` \
-                        FROM `OrdersOfProducts` \
-                        WHERE `OrderID` = %s"
-            pysql.run(sql_stmt, (order_id, ))
-            quantities_products = pysql.get_results()
+        # Update the quantities of all the products that are already present
+        sql_stmt = "UPDATE `Inventory` \
+                    SET `StoredQuantity` = `StoredQuantity` + %s \
+                    WHERE `ProductID` = %s"
+        pysql.run_many(sql_stmt, quantities_products)
 
-            # Update the quantities of all the products that are already present
-            sql_stmt = "UPDATE `Inventory` \
-                        SET `StoredQuantity` = `StoredQuantity` + %s \
-                        WHERE `ProductID` = %s"
-            pysql.run_many(sql_stmt, quantities_products)
+        # Insert the products in the inventory if not present by default
+        # (set threshold to 10 percent of the order quantity)
+        sql_stmt = "INSERT INTO `Inventory` \
+                    (SELECT `ProductID`, `Quantity`, 0.0, Quantity * 0.1 \
+                     FROM `OrdersOfProducts` \
+                     WHERE `OrderID` = %s and `ProductID` NOT IN (SELECT `ProductID` \
+                                                                  FROM `Inventory`))"
+        pysql.run(sql_stmt, (order_id, ))
 
-            # Insert the products in the inventory if not present by default
-            # (set threshold to 10 percent of the order quantity)
-            sql_stmt = "INSERT INTO `Inventory` \
-                        (SELECT `ProductID`, `Quantity`, 0.0, Quantity * 0.1 \
-                         FROM `OrdersOfProducts` \
-                         WHERE `OrderID` = %s and `ProductID` NOT IN (SELECT `ProductID` \
-                                                                      FROM `Inventory`))"
-            pysql.run(sql_stmt, (order_id, ))
+        # Mark the order delivered status as true
+        sql_stmt = "UPDATE `Orders` \
+                    SET `Delivered?` = true \
+                    WHERE `OrderID` = %s"
+        pysql.run(sql_stmt, (order_id, ))
 
-            # Mark the order delivered status as true
-            sql_stmt = "UPDATE `Orders` \
-                        SET `Delivered?` = true \
-                        WHERE `OrderID` = %s"
-            pysql.run(sql_stmt, (order_id, ))
+        # Log the transactions
+        for quantity, product_id in quantities_products:
+            InventoryManager.log_transaction(pysql, "INVENTORY_ADD", product_id, quantity)
 
-            # Log the transactions
-            for pair in quantities_products:
-                InventoryManager.log_transaction(pysql, "INVENTORY_ADD", pair[1], pair[0])
+        # Commit the changes
+        pysql.commit()
 
-            # Commit the changes
-            pysql.commit()
-        except:
-            # Print error
-            pysql.print_error()
-            # Revert the changes
-            pysql.rollback()
+        # Deinitialize the pysql object
+        pysql.deinit()
+
 
     # @brief This function returns all the order till date
     # @param pysql PySql object
-    # @retval List of tuples of format (OrderID, OrderDate, Delivered?, Cancelled?)
+    # @retval (OrderID, OrderDate, Delivered?, Cancelled?) (list of tuples)
     @staticmethod
     def get_orders(pysql):
-        try:
-            # Get all the orders
-            sql_stmt = "SELECT * \
-                        FROM `Orders`"
-            pysql.run(sql_stmt)
+        # Initialize the pysql object
+        pysql.init()
 
-            # Return the result
-            return pysql.get_results()
-        except:
-            # Print error
-            pysql.print_error()
+        # Get all the orders
+        sql_stmt = "SELECT * \
+                    FROM `Orders`"
+        pysql.run(sql_stmt)
+
+        # Get the result
+        orders = pysql.result
+
+        # Deinitialize the pysql object
+        pysql.deinit()
+
+        return orders
 
     # @brief This function returns the products in the orders
     # @param pysql PySql object
-    # @param order_id OrderId to get the details of
-    # @retval List of tuples of format (ProductID, Name, Quantity, UnitType)
+    # @param order_id OrderId
+    # @retval (ProductID, Name, Quantity, UnitType) (list of tuples)
     @staticmethod
     def get_order_details(pysql, order_id):
-        try:
-            # Get order status
-            sql_stmt = "SELECT * \
-                        FROM `Orders` \
-                        WHERE `OrderID` = %s"
-            pysql.run(sql_stmt, (order_id, ))
-            order_status = pysql.get_results()[0]
+        # Initialize the pysql object
+        pysql.init()
 
-            # Get the products in the given order
-            sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitType` \
-                        FROM `OrdersOfProducts` JOIN `Products` USING (`ProductID`) \
-                        WHERE `OrderID` = %s"
-            pysql.run(sql_stmt, (order_id, ))
-            order_details = pysql.get_results()
-            
-            # Return the result
-            return order_status, order_details
-        except:
-            # Print error
-            pysql.print_error()
+        # Get order status
+        sql_stmt = "SELECT * \
+                    FROM `Orders` \
+                    WHERE `OrderID` = %s"
+        pysql.run(sql_stmt, (order_id, ))
+        order_status = pysql.result[0]
+
+        # Get the products in the given order
+        sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitType` \
+                    FROM `OrdersOfProducts` JOIN `Products` USING (`ProductID`) \
+                    WHERE `OrderID` = %s"
+        pysql.run(sql_stmt, (order_id, ))
+        order_details = pysql.result
+
+        # Deinitialize the pysql object
+        pysql.deinit()
+
+        # Return the result
+        return order_status, order_details
 
     # @brief This function returns all the order till between the two dates
     # @param pysql PySql object
-    # @retval List of tuples of format (OrderID, OrderDate, Delivered?, Cancelled?)
+    # @param start_date From Date (string of format "YYYY-MM-DD")
+    # @param end_date To Date (string of format "YYYY-MM-DD")
+    # @retval (OrderID, OrderDate, Delivered?, Cancelled?) (list of tuples)
     @staticmethod
     def get_orders_between_date(pysql, start_date, end_date):
-        try:
-            # Get all the orders between the given date
-            sql_stmt = "SELECT * \
-                        FROM `Orders` \
-                        WHERE DATE(`OrderDate`) BETWEEN %s AND %s"
-            pysql.run(sql_stmt, (start_date, end_date))
+        # Initialize the pysql object
+        pysql.init()
 
-            # Return the result
-            return pysql.get_results()
-        except:
-            # Print error
-            pysql.print_error()
+        # Get all the orders between the given date
+        sql_stmt = "SELECT * \
+                    FROM `Orders` \
+                    WHERE DATE(`OrderDate`) BETWEEN %s AND %s"
+        pysql.run(sql_stmt, (start_date, end_date))
+
+        # Get the result
+        orders = pysql.result
+
+        # Deinitialize the pysql object
+        pysql.deinit()
+
+        return orders

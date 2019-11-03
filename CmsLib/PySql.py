@@ -23,39 +23,71 @@ class PySql:
 
         # Create the mysql object
         self.mysql = MySQL(flask_app)
+        # Set cursor to none
         self.mysql_cursor = None
         # Field to store the last select result
-        self.last_result = None
+        self.__last_result = None
 
-    # @brief This function connects python to sql
-    def connect_py_sql(self):
+    # @brief This function initializes the flask sql cursor
+    def init(self):
         self.mysql_cursor = self.mysql.connection.cursor()
+
+    # @brief This function deinitializes the flask sql cursor
+    def deinit(self):
+        self.mysql_cursor.close()
 
     # @brief This method executes a single sql query
     # @param sql_stmt The sql statement to be executed (string)
     # @param params The arguments for the sql_stmt (tuple)
     def run(self, sql_stmt, params = None):
-        # Run the sql query
-        self.mysql_cursor.execute(sql_stmt, params)
+        try:
+            # Run the sql query
+            self.mysql_cursor.execute(sql_stmt, params)
+        except:
+            # Roll back the changes
+            self.rollback()
+            # Deinitialize the cursor
+            self.deinit()
 
     # @brief This method executes the same sql query for each of the parameter
     # @param sql_stmt The sql statement to be executed (string)
     # @param params The arguments for the sql_stmt (list of tuples)
     def run_many(self, sql_stmt, params):
-        # Run the sql query
-        self.mysql_cursor.executemany(sql_stmt, params)
+        try:
+            # Run the sql query
+            self.mysql_cursor.executemany(sql_stmt, params)
+        except:
+            # Roll back the changes
+            self.rollback()
+            # Deinitialize the cursor
+            self.deinit()
 
     # @brief This method fetches the result of the previously ran sql query
     # @return last_result The result of the previously ran sql query
-    def get_results(self):
+    def __result(self):
         try:
             # Fetch the result
-            self.last_result = self.mysql_cursor.fetchall()
+            self.__last_result = self.mysql_cursor.fetchall()
             # Save the result
-            return self.last_result
+            return self.__last_result
         except InterfaceError:
             # If result cannot be fetched then return the last result
-            return self.last_result
+            return self.__last_result
+
+    # @brief This property can be used as a normal field of the pysql object
+    #        to get the result of a previous query
+    @property
+    def result(self):
+        self.__result()
+
+    # @brief This property can be used as a normal field of the pysql object
+    #        to get the scalar result (i.e. single element) of a previous query
+    @property
+    def scalar_result(self):
+        try:
+            self.__result()[0][0]
+        except IndexError:
+            return None
 
     # @brief This method updates the remote database with the updates
     #        made to the local database
@@ -66,17 +98,3 @@ class PySql:
     #        database (hence ignoring any changes made to the local copy)
     def rollback(self):
         self.mysql.connection.rollback()
-
-    # @brief This method indicates the error that has been raised
-    def print_error(self):
-        # Get the traceback
-        tb = sys.exc_info()[2]
-
-        # Get the filename
-        filename = tb.tb_frame.f_code.co_filename
-
-        # Get the line number
-        lineno = tb.tb_lineno
-
-        # Print the line number as error
-        print("** Error occurred at line number {} in file {}".format(lineno, filename))
