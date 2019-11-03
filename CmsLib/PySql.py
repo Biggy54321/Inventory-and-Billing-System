@@ -27,6 +27,7 @@ class PySql:
         # Field to store the last select result
         self.last_result = None
 
+    # @brief This function connects python to sql
     def connect_py_sql(self):
         self.mysql_cursor = self.mysql.connection.cursor()
 
