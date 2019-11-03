@@ -6,6 +6,7 @@
             <th>Stored Quantity</th>
             <th>Displayed Quantity</th>
             <th>Minimum Threshold</th>
+            <th>Unit Type</th>
         </tr>
     </thead>
     <tbody>
@@ -13,7 +14,9 @@
         <tr>
             {% for d in row %}
             <td>{{ d }}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
     </tbody>
+    <a href="inventory_manager_home.html" class="button">Back</a>
 </table>

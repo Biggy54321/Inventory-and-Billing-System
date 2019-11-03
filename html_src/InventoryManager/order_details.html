@@ -10,13 +10,13 @@
         </tr>
     </thead>
     <tbody>
-        {% for row in order_details %}
         <tr>
-            {% for d in row %}
-            <td>{{ d }}</td>
-            {% endfor %}
-        </tr>
+        {% for d in order_status %}
+        <td>
+            {{ d }}
+        </td>
         {% endfor %}
+    </tr>
     </tbody>
 </table>
 
@@ -31,10 +31,11 @@
         </tr>
     </thead>
     <tbody>
-        {% for row in products_in_order %}
+        {% for row in order_details %}
         <tr>
             {% for d in row %}
             <td>{{ d }}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
     </tbody>

@@ -197,14 +197,22 @@ class OrderManager:
     @staticmethod
     def get_order_details(pysql, order_id):
         try:
+            # Get order status
+            sql_stmt = "SELECT * \
+                        FROM `Orders` \
+                        WHERE `OrderID` = %s"
+            pysql.run(sql_stmt, (order_id, ))
+            order_status = pysql.get_results()[0]
+
             # Get the products in the given order
             sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitType` \
                         FROM `OrdersOfProducts` JOIN `Products` USING (`ProductID`) \
                         WHERE `OrderID` = %s"
             pysql.run(sql_stmt, (order_id, ))
-
+            order_details = pysql.get_results()
+            
             # Return the result
-            return pysql.get_results()
+            return order_status, order_details
         except:
             # Print error
             pysql.print_error()

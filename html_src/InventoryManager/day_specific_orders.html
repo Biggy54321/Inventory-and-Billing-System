@@ -4,6 +4,7 @@
     <thead>
         <tr>
             <th>Order ID</th>
+            <th>Date Time</th>
             <th>Delivered?</th>
             <th>Cancelled?</th>
         </tr>
@@ -13,6 +14,7 @@
         <tr>
             {% for d in row %}
             <td>{{ d }}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
     </tbody>
