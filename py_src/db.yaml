@@ -1,4 +1,4 @@
 mysql_host : '127.0.0.1'
-mysql_user : 'root'
-mysql_password : 'vishal'
-mysql_db : 'chitale'
+mysql_user : 'bhaskar'
+mysql_password : 'biggy'
+mysql_db : 'CMS'

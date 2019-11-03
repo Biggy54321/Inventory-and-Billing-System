@@ -6,8 +6,32 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <form action="" method="GET">
-            
+        <table>
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Name</th>
+                    <th>Unit Type</th>
+                </tr>    
+            </thead>
+            <tbody>
+                {% for row in product_data %}
+                <tr>
+                    {% for d in row %}
+                    <td>
+                        {{ d }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table><br><br><br>
+        <form action="" method="POST">
+            Product ID : <input type="text" name="product_id"><br><br>
+            Quantity : <input type="text" name="quantity"><br><br>
+            <input type="submit" name="add_product" value="Add Product to Order" class = "button"><br>
+            <input type="submit" name="place_order" value="Place Order" class = "button"><br>
         </form>
     </body>
 </html>
