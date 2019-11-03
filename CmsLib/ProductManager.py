@@ -128,9 +128,11 @@ class ProductManager:
 
             # Return the result
             return pysql.get_results()
-        except:
+        except Exception as e:
+            print (e)
+
             # Print the error
-            pysql.print_error()
+            #pysql.print_error()
 
     # @brief This method returns the product if from the name of the product
     # @param pysql PySql object
