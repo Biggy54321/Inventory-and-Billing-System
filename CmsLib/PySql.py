@@ -13,7 +13,7 @@ class PySql:
     def __init__(self, flask_app, path_to_yaml):
 
         # Load the yaml file
-        db_details = yaml.load(open(path_to_yaml))
+        db_details = yaml.load(open(path_to_yaml), Loader=yaml.FullLoader)
 
         # Configure the flask object
         flask_app.config['MYSQL_HOST'] = db_details['mysql_host']
@@ -23,10 +23,12 @@ class PySql:
 
         # Create the mysql object
         self.mysql = MySQL(flask_app)
-        # Create mysql cursor object
-        self.mysql_cursor = self.mysql.connection.cursor()
+        self.mysql_cursor = None
         # Field to store the last select result
         self.last_result = None
+
+    def connect_py_sql(self):
+        self.mysql_cursor = self.mysql.connection.cursor()
 
     # @brief This method executes a single sql query
     # @param sql_stmt The sql statement to be executed (string)
