@@ -78,14 +78,14 @@ class PySql:
     #        to get the result of a previous query
     @property
     def result(self):
-        self.__result()
+        return self.__result()
 
     # @brief This property can be used as a normal field of the pysql object
     #        to get the scalar result (i.e. single element) of a previous query
     @property
     def scalar_result(self):
         try:
-            self.__result()[0][0]
+            return self.__result()[0][0]
         except IndexError:
             return None
 

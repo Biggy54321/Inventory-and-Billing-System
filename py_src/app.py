@@ -36,7 +36,7 @@ def load_inventory_modules():
             return redirect('InventoryManager/ProductsInInvTransactions')
 
     return render_template('InventoryManager/inventory_manager_home.html')
-    
+
 @app.route('/InventoryManager/PlaceOrder', methods = ['GET', 'POST'])
 def place_order():
     pysql.connect_py_sql()
@@ -49,7 +49,7 @@ def place_order():
         for i in range(len(product_)):
             if quantities[i]:
                 quantity = float(quantities[i])
-                
+
                 if quantity:
                     order_details.append((product_[i][0], quantity))
         if order_details:
