@@ -17,13 +17,10 @@ class OrderManager:
     # @param products_quantities (ProductID, Quantity) (list of tuples)
     # @retval order_id The OrderId (string)
     @staticmethod
-    def place_order(pysql, products_quantities):
+    def __place_order(pysql, products_quantities):
         # Fetch the global variables
         global next_order_id
         global next_order_id_read
-
-        # Initialize the pysql object
-        pysql.init()
 
         # Initialize the next order id
         if not next_order_id_read:
@@ -46,14 +43,8 @@ class OrderManager:
                     VALUES ('{}', %s, %s)".format(order_id)
         pysql.run_many(sql_stmt, products_quantities)
 
-        # Commit the changes
-        pysql.commit()
-
         # Increment the global order id count
         next_order_id += 1
-
-        # Deinitialize the pysql object
-        pysql.deinit()
 
         # Return the currently created order id
         return order_id
@@ -66,10 +57,7 @@ class OrderManager:
     # @retval (1, 0) Delivered and not cancelled
     # @retval (1, 1) OrderID not found
     @staticmethod
-    def get_order_status(pysql, order_id):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __get_order_status(pysql, order_id):
         # Get the delivered status of the order
         sql_stmt = "SELECT `Delivered?`, `Cancelled?` \
                     FROM `Orders` \
@@ -78,9 +66,6 @@ class OrderManager:
 
         # Get order status
         order_status = pysql.result[0]
-
-        # Deinitialize the pysql object
-        pysql.deinit()
 
         # If order status not found
         if not order_status:
@@ -93,10 +78,7 @@ class OrderManager:
     # @param pysql PySql object
     # @param order_id OrderID (string)
     @staticmethod
-    def cancel_order(pysql, order_id):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __cancel_order(pysql, order_id):
         # Get the order status
         is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
 
@@ -111,21 +93,12 @@ class OrderManager:
                     WHERE `OrderID` = %s"
         pysql.run(sql_stmt, (order_id, ))
 
-        # Commit the changes
-        pysql.commit()
-
-        # Deinitialize the pysql object
-        pysql.deinit()
-
     # @brief This method receives the order i.e. updates the stored
     #        inventory quantities and marks the order as delivered
     # @param pysql PySql object
     # @param order_id OrderID of the order received (string)
     @staticmethod
-    def receive_order(pysql, order_id):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __receive_order(pysql, order_id):
         # Get the order status
         is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
 
@@ -165,21 +138,11 @@ class OrderManager:
         for quantity, product_id in quantities_products:
             InventoryManager.log_transaction(pysql, "INVENTORY_ADD", product_id, quantity)
 
-        # Commit the changes
-        pysql.commit()
-
-        # Deinitialize the pysql object
-        pysql.deinit()
-
-
     # @brief This function returns all the order till date
     # @param pysql PySql object
     # @retval (OrderID, OrderDate, Delivered?, Cancelled?) (list of tuples)
     @staticmethod
-    def get_orders(pysql):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __get_orders(pysql):
         # Get all the orders
         sql_stmt = "SELECT * \
                     FROM `Orders`"
@@ -188,9 +151,6 @@ class OrderManager:
         # Get the result
         orders = pysql.result
 
-        # Deinitialize the pysql object
-        pysql.deinit()
-
         return orders
 
     # @brief This function returns the products in the orders
@@ -198,10 +158,7 @@ class OrderManager:
     # @param order_id OrderId
     # @retval (ProductID, Name, Quantity, UnitType) (list of tuples)
     @staticmethod
-    def get_order_details(pysql, order_id):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __get_order_details(pysql, order_id):
         # Get order status
         sql_stmt = "SELECT * \
                     FROM `Orders` \
@@ -216,9 +173,6 @@ class OrderManager:
         pysql.run(sql_stmt, (order_id, ))
         order_details = pysql.result
 
-        # Deinitialize the pysql object
-        pysql.deinit()
-
         # Return the result
         return order_status, order_details
 
@@ -228,10 +182,7 @@ class OrderManager:
     # @param end_date To Date (string of format "YYYY-MM-DD")
     # @retval (OrderID, OrderDate, Delivered?, Cancelled?) (list of tuples)
     @staticmethod
-    def get_orders_between_date(pysql, start_date, end_date):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __get_orders_between_date(pysql, start_date, end_date):
         # Get all the orders between the given date
         sql_stmt = "SELECT * \
                     FROM `Orders` \
@@ -241,7 +192,47 @@ class OrderManager:
         # Get the result
         orders = pysql.result
 
-        # Deinitialize the pysql object
-        pysql.deinit()
-
         return orders
+
+    # @ref __place_order
+    @staticmethod
+    def place_order(pysql, products_quantities):
+        return pysql.run_transaction(OrderManager.__place_order,
+                                     products_quantities)
+    # @ref __get_order_status
+    @staticmethod
+    def get_order_status(pysql, order_id):
+        return pysql.run_transaction(OrderManager.__get_order_status,
+                                     order_id,
+                                     commit = False)
+    # @ref __cancel_order
+    @staticmethod
+    def cancel_order(pysql, order_id):
+        return pysql.run_transaction(OrderManager.__cancel_order,
+                                     order_id)
+    # @ref __receive_order
+    @staticmethod
+    def receive_order(pysql, order_id):
+        return pysql.run_transaction(OrderManager.__receive_order,
+                                     order_id)
+
+    # @ref __get_orders
+    @staticmethod
+    def get_orders(pysql):
+        return pysql.run_transaction(OrderManager.__get_orders,
+                                     commit = False)
+
+    # @ref __get_order_details
+    @staticmethod
+    def get_order_details(pysql, order_id):
+        return pysql.run_transaction(OrderManager.__get_order_details,
+                                     order_id,
+                                     commit = False)
+
+    # @ref __get_orders_between_date
+    @staticmethod
+    def get_orders_between_date(pysql, start_date, end_date):
+        return pysql.run_transaction(OrderManager.__get_orders_between_date,
+                                     start_date,
+                                     end_date,
+                                     commit = False)

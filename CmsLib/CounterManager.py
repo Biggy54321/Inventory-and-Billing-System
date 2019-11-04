@@ -15,10 +15,7 @@ class CounterManager:
     # @param product_id ProductID (string)
     # @param quantity Product Quantity (float)
     @staticmethod
-    def add_counter_to_token(pysql, token_id, product_id, quantity):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __add_counter_to_token(pysql, token_id, product_id, quantity):
         # Check if token is assigned
         if not TokenManager.is_token_assigned(pysql, token_id):
             return
@@ -37,12 +34,6 @@ class CounterManager:
         # Log the transaction
         InventoryManager.log_transaction(pysql, "COUNTER_SUB", product_id, quantity)
 
-        # Commit the changes
-        pysql.commit()
-
-        # Deinitialize the pysql object
-        pysql.deinit()
-
     # @brief This method adds the specified quantity of the product from
     #        the stored inventory to the counter inventory and also logs
     #        the transaction
@@ -50,10 +41,7 @@ class CounterManager:
     # @param product_id ProductID  (string)
     # @param quantity Product Quantity (float)
     @staticmethod
-    def add_inventory_to_counter(pysql, product_id, quantity):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __add_inventory_to_counter(pysql, product_id, quantity):
         # Remove from inventory
         sql_stmt = "UPDATE `Inventory` \
                     SET `DisplayedQuantity` = `DisplayedQuantity` + %s, \
@@ -64,22 +52,13 @@ class CounterManager:
         # Log the transaction
         InventoryManager.log_transaction(pysql, "INVENTORY_TO_COUNTER", product_id, quantity)
 
-        # Commit the changes
-        pysql.commit()
-
-        # Deinitialize the pysql object
-        pysql.deinit()
-
     # @brief This method adds the specified quantity of the product to
     #        the counter and logs the transaction
     # @param pysql PySql object
     # @param token_id TokenID (string)
     # @param product_id ProductID (string)
     @staticmethod
-    def add_token_to_counter(pysql, token_id, product_id):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __add_token_to_counter(pysql, token_id, product_id):
         # Get the current quantity of products in the token
         sql_stmt = "SELECT `Quantity` \
                     FROM `TokensSelectProducts` \
@@ -107,8 +86,24 @@ class CounterManager:
         # Log the transaction
         InventoryManager.log_transaction(pysql, "COUNTER_ADD", product_id, quantity)
 
-        # Commit the changes
-        pysql.commit()
+    # @ref __add_counter_to_token
+    @staticmethod
+    def add_counter_to_token(pysql, token_id, product_id, quantity):
+        return pysql.run_transaction(CounterManager.__add_counter_to_token,
+                                     token_id,
+                                     product_id,
+                                     quantity)
 
-        # Deinitialize the pysql object
-        pysql.deinit()
+    # @ref __add_inventory_to_counter
+    @staticmethod
+    def add_inventory_to_counter(pysql, product_id, quantity):
+        return pysql.run_transaction(CounterManager.__add_inventory_to_counter,
+                                     product_id,
+                                     quantity)
+
+    # @ref __add_token_to_counter
+    @staticmethod
+    def add_token_to_counter(pysql, token_id, product_id):
+        return pysql.run_transaction(CounterManager.__add_token_to_counter,
+                                     token_id,
+                                     product_id)

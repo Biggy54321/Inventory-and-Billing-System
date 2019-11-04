@@ -40,27 +40,15 @@ class PySql:
     # @param sql_stmt The sql statement to be executed (string)
     # @param params The arguments for the sql_stmt (tuple)
     def run(self, sql_stmt, params = None):
-        try:
-            # Run the sql query
-            self.mysql_cursor.execute(sql_stmt, params)
-        except:
-            # Roll back the changes
-            self.rollback()
-            # Deinitialize the cursor
-            self.deinit()
+        # Run the sql query
+        self.mysql_cursor.execute(sql_stmt, params)
 
     # @brief This method executes the same sql query for each of the parameter
     # @param sql_stmt The sql statement to be executed (string)
     # @param params The arguments for the sql_stmt (list of tuples)
     def run_many(self, sql_stmt, params):
-        try:
-            # Run the sql query
-            self.mysql_cursor.executemany(sql_stmt, params)
-        except:
-            # Roll back the changes
-            self.rollback()
-            # Deinitialize the cursor
-            self.deinit()
+        # Run the sql query
+        self.mysql_cursor.executemany(sql_stmt, params)
 
     # @brief This method fetches the result of the previously ran sql query
     # @return last_result The result of the previously ran sql query
@@ -98,3 +86,34 @@ class PySql:
     #        database (hence ignoring any changes made to the local copy)
     def rollback(self):
         self.mysql.connection.rollback()
+
+    # @brief This method calls a function wrapped around a try except block
+    #        to provide robust error handling
+    # @param function Function object or pointer to be called
+    # @param args List of arguments to the function
+    # @param commit Boolean to specify wether to commit or not
+    # @retval Return value of the function
+    # @retval None For error
+    def run_transaction(self, function, *args, commit = True):
+        try:
+            # Initialize the pysql object
+            self.init()
+
+            # Execute the function
+            result = function(self, *args)
+        except:
+            # Rollback the changes
+            self.rollback()
+
+            # Return failure
+            return None
+        else:
+            # Commit the changes is specified
+            if commit:
+                self.commit()
+
+            # Return the resutl
+            return result
+        finally:
+            # Deinitialize the pysql object
+            self.deinit()

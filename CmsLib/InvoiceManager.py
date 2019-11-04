@@ -18,13 +18,10 @@ class InvoiceManager:
     # @retval invoice_id The invoice id created (string)
     # @retval None For discrepancy in the tokens
     @staticmethod
-    def generate_invoice(pysql, token_ids, payment_mode):
+    def __generate_invoice(pysql, token_ids, payment_mode):
         # Get the global variables
         global next_invoice_id
         global next_invoice_id_read
-
-        # Initialize the pysql object
-        pysql.init()
 
         # Read the next invoice id for once
         if not next_invoice_id_read:
@@ -92,14 +89,8 @@ class InvoiceManager:
                     WHERE `TokenID` = %s"
         pysql.run_many(sql_stmt, token_ids)
 
-        # Commit the changes
-        pysql.commit()
-
         # Increment the global invoice id
         next_invoice_id += 1
-
-        # Deinitialize the pysql object
-        pysql.deinit()
 
         # Return the invoice id
         return invoice_id
@@ -109,10 +100,7 @@ class InvoiceManager:
     # @param gst New value of GST in percentage (float)
     # @param cgst New value of CGST in percentage (float)
     @staticmethod
-    def update_gst_cgst(pysql, gst, cgst):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __update_gst_cgst(pysql, gst, cgst):
         # Update GST
         sql_stmt = "ALTER TABLE `Invoices` \
                     ALTER `GST` SET DEFAULT %s"
@@ -122,36 +110,49 @@ class InvoiceManager:
                     ALTER `CGST` SET DEFAULT %s"
         pysql.run(sql_stmt, (cgst, ))
 
-        # Commit the changes
-        pysql.commit()
-
-        # Deinitialize the pysql object
-        pysql.deinit()
-
     # @brief This method updates the discount for a particular invoice
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
     # @param discount The discount amount given (float)
     @staticmethod
-    def give_additional_discount(pysql, invoice_id, discount):
-        # Initialize the pysql object
-        pysql.init()
-
+    def __give_additional_discount(pysql, invoice_id, discount):
         # Update the discount value
         sql_stmt = "UPDATE `Invoices` \
                     SET `DiscountGiven` = %s \
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (discount, invoice_id))
 
-        # Commit the changes
-        pysql.commit()
-
-        # Deinitialize the pysql object
-        pysql.deinit()
-
     # @brief This method prints the invoice for the specified InvoiceID
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
     @staticmethod
-    def get_invoice(pysql, invoice_id):
+    def __get_invoice(pysql, invoice_id):
         pass
+
+    # @ref __generate_invoice
+    @staticmethod
+    def generate_invoice(pysql, token_ids, payment_mode):
+        return pysql.run_transaction(InvoiceManager.__generate_invoice,
+                                     token_ids,
+                                     payment_mode)
+
+    # @ref __update_gst_cgst
+    @staticmethod
+    def update_gst_cgst(pysql, gst, cgst):
+        return pysql.run_transaction(InvoiceManager.__update_gst_cgst,
+                                     gst,
+                                     cgst)
+
+    # @ref __give_additional_discount
+    @staticmethod
+    def give_additional_discount(pysql, invoice_id, discount):
+        return pysql.run_transaction(InvoiceManager.__give_additional_discount,
+                                     invoice_id,
+                                     discount)
+
+    # @ref __get_invoice
+    @staticmethod
+    def get_invoice(pysql, invoice_id):
+        return pysql.run_transaction(InvoiceManager.__get_invoice,
+                                     invoice_id,
+                                     commit = False)
