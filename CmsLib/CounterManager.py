@@ -26,10 +26,20 @@ class CounterManager:
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (quantity, product_id))
 
-        # Add the product quantity to the select relation
-        sql_stmt = "INSERT INTO `TokensSelectProducts` \
-                    VALUES (%s, %s, %s)"
-        pysql.run(sql_stmt, (token_id, product_id, quantity))
+        # Get the token details of the given token
+        products_quantities = TokenManager.get_token_details(pysql, token_id)
+
+        if product_id, _ in products_quantities:
+            # Update the product quantity if present already
+            sql_stmt = "UPDATE `TokensSelectProducts` \
+                        SET `Quantity` = `Quantity` + %s \
+                        WHERE `TokenID` = %s AND `ProductID` = %s"
+            pysql.run(sql_stmt, (quantity, token_id, product_id))
+        else:
+            # Insert the product quantity if product not already present
+            sql_stmt = "INSERT INTO `TokensSelectProducts` \
+                        VALUES (%s, %s, %s)"
+            pysql.run(sql_stmt, (token_id, product_id, quantity))
 
         # Log the transaction
         InventoryManager.log_transaction(pysql, "COUNTER_SUB", product_id, quantity)
@@ -77,11 +87,20 @@ class CounterManager:
                     WHERE `TokenID` = %s AND `ProductID` = %s"
         pysql.run(sql_stmt, (token_id, product_id))
 
-        # Add the required quantity to the counter
-        sql_stmt = "UPDATE `Inventory` \
-                    SET `DisplayedQuantity` = `DisplayedQuantity` + %s \
-                    WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (quantity, product_id))
+        # Get the inventory details
+        inventory = InventoryManager.get_inventory_details(pysql)
+
+        if product_id, _, _, _, _, _ in inventory:
+            # Update the required quantity to the counter if already present
+            sql_stmt = "UPDATE `Inventory` \
+                        SET `DisplayedQuantity` = `DisplayedQuantity` + %s \
+                        WHERE `ProductID` = %s"
+            pysql.run(sql_stmt, (quantity, product_id))
+        else:
+            # Insert the the required quantity to the counter
+            sql_stmt = "INSERT INTO `Inventory` \
+                        VALUES (%s, %s, %s, %s)"
+            pysql.run(sql_stmt, (product_id, 0, quantity, 0))
 
         # Log the transaction
         InventoryManager.log_transaction(pysql, "COUNTER_ADD", product_id, quantity)
