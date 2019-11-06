@@ -8,7 +8,6 @@ pysql = PySql(app, 'db.yaml')
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
-    pysql.connect_py_sql()
     return render_template('index.html')
 
 @app.route('/InventoryManager', methods = ['GET', 'POST'])
@@ -30,8 +29,6 @@ def load_inventory_modules():
             return redirect('InventoryManager/DailyOrders')
         elif 'transaction_log' in request.form:
             return redirect('InventoryManager/TransactionLog')
-        elif 'products_in_orders' in request.form:
-            return redirect('InventoryManager/ProductsInOrders')
         elif 'products_in_inv_transactions' in request.form:
             return redirect('InventoryManager/ProductsInInvTransactions')
 
@@ -39,13 +36,11 @@ def load_inventory_modules():
 
 @app.route('/InventoryManager/PlaceOrder', methods = ['GET', 'POST'])
 def place_order():
-    pysql.connect_py_sql()
     product_ = ProductManager.get_all_products(pysql)
     product_data = [(each[0], each[1], each[4]) for each in product_]
     if request.method == 'POST':
         order_details = list()
         quantities = request.form.getlist("quantity[]")
-        print ("*******************", quantities)
         for i in range(len(product_)):
             if quantities[i]:
                 quantity = float(quantities[i])
@@ -62,7 +57,6 @@ def place_order():
 
 @app.route('/InventoryManager/ReceiveOrder', methods = ['GET', 'POST'])
 def receive_order():
-    pysql.connect_py_sql()
     if request.method == 'POST':
         order_id = request.form['order_id']
         OrderManager.receive_order(pysql, order_id)
@@ -72,7 +66,6 @@ def receive_order():
 
 @app.route('/InventoryManager/CancelOrder', methods = ['GET', 'POST'])
 def cancel_order():
-    pysql.connect_py_sql()
     if request.method == 'POST':
         order_id = request.form['order_id'].strip()
         OrderManager.cancel_order(pysql, order_id)
@@ -81,21 +74,18 @@ def cancel_order():
         return render_template('/InventoryManager/cancel_order.html')
 
 @app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
-def view_inventory():
-    pysql.connect_py_sql()
+def view_inventory():    
     data = InventoryManager.get_inventory_details(pysql)
     return render_template('/InventoryManager/view_inventory.html', data=data)
     
 
 @app.route('/InventoryManager/ViewProducts', methods = ['GET', 'POST'])
 def view_products():
-    pysql.connect_py_sql()
     data = ProductManager.get_all_products(pysql)
     return render_template('/InventoryManager/view_products.html', data=data)
 
 @app.route('/InventoryManager/OrderDetails', methods = ['GET', 'POST'])
 def order_details():
-    pysql.connect_py_sql()
     if request.method == 'POST':
         order_id = request.form['order_id']
         order_status, order_details = OrderManager.get_order_details(pysql, order_id)
@@ -105,7 +95,6 @@ def order_details():
 
 @app.route('/InventoryManager/DailyOrders', methods = ['GET', 'POST'])
 def daily_orders():
-    pysql.connect_py_sql()
     if request.method == 'POST':
         start_date, end_date = request.form['orders_from_date'], request.form['orders_to_date']
         order_details = OrderManager.get_orders_between_date(pysql, start_date, end_date)
@@ -115,13 +104,11 @@ def daily_orders():
 
 @app.route('/InventoryManager/TransactionLog', methods = ['GET', 'POST'])
 def transaction_log():
-    pysql.connect_py_sql()
     transaction_details = InventoryManager.get_transactions(pysql)
     return render_template('/InventoryManager/inventory_transactions_log.html', transaction_details=transaction_details)
 
 @app.route('/InventoryManager/ProductsInInvTransactions', methods = ['GET', 'POST'])
 def transactions_of_product_on_date():
-    pysql.connect_py_sql()
     products = ProductManager.get_all_products(pysql)
     products = [each[1] for each in products]
     if request.method == 'POST':
@@ -132,7 +119,48 @@ def transactions_of_product_on_date():
     else:
         return render_template('/InventoryManager/products_in_inv_transactions_home.html', products=products)
 
+@app.route('/TokenManager', methods = ['GET', 'POST'])
+def token_manager_home():
+    if request.method == 'POST':
+        if get_token_statuses in request.form:
+            return redirect('/TokenManager/Token_Statuses')
+        elif get_token in request.form:
+            return redirect('/TokenManager/Get_Token')
+        elif return_token in request.form:
+            return redirect('/TokenManager/Return_Token')
+        elif get_token_details in request.form:
+            return redirect('/TokenManager/Get_Token_Details')
+    else:
+        return render_template('/TokenManager/token_manager_home.html')
+
+@app.route('/TokenManager/Token_Statuses', methods = ['GET', 'POST'])
+def token_statuses():
+    statuses = TokenManager.get_all_tokens_status(pysql)
+    return render_template('/TokenManager/token_statuses.html', statuses = statuses)
+
+@app.route('/TokenManager/Get_Token', methods = ['GET', 'POST'])
+def get_token():
+    token_id = TokenManager.get_token(pysql)
+    return render_template('/TokenManager/get_token.html', token_id = token_id)
+
+@app.route('/TokenManager/Return_Token', methods = ['GET', 'POST'])
+def return_token():
+    if request.method == 'POST':
+        token_id = request.form['token_id']
+        TokenManager.put_token(pysql, token_id)
+    else:
+        return render_template('TokenManager/token_home.html')
+
+@app.route('/TokenManger/Get_Token_Details')
+def get_token_details():
+    if request.method == 'POST':
+        token_id = request.form['token_id']
+        token_details = TokenManager.get_token_details(pysql, token_id)
+        return render_template('/TokenManager/get_token_details.html', token_details = token_details)
+    else:
+        return render_template('/TokenManager/token_home.html')        
 
 
 if __name__ == "__main__" :
     app.run(debug = True)
+
