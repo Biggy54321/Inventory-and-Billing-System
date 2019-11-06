@@ -26,10 +26,15 @@ class CounterManager:
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (quantity, product_id))
 
-        # Get the token details of the given token
-        products_quantities = TokenManager.get_token_details(pysql, token_id)
+        # Check if the token already has the product
+        sql_stmt = "SELECT 1 \
+                    FROM `TokensSelectProducts` \
+                    WHERE `TokenID` = %s AND `ProductID` = %s"
+        pysql.run(sql_stmt, (token_id, product_id))
+        # Get the result
+        product_present = pysql.scalar_result
 
-        if product_id, _ in products_quantities:
+        if product_present:
             # Update the product quantity if present already
             sql_stmt = "UPDATE `TokensSelectProducts` \
                         SET `Quantity` = `Quantity` + %s \
@@ -87,10 +92,15 @@ class CounterManager:
                     WHERE `TokenID` = %s AND `ProductID` = %s"
         pysql.run(sql_stmt, (token_id, product_id))
 
-        # Get the inventory details
-        inventory = InventoryManager.get_inventory_details(pysql)
+        # Check if the product is already in the inventory
+        sql_stmt = "SELECT 1 \
+                    FROM `Inventory` \
+                    WHERE `ProductID` = %s"
+        pysql.run(sql_stmt, (product_id))
+        # Get the result
+        product_present = pysql.scalar_result
 
-        if product_id, _, _, _, _, _ in inventory:
+        if product_present:
             # Update the required quantity to the counter if already present
             sql_stmt = "UPDATE `Inventory` \
                         SET `DisplayedQuantity` = `DisplayedQuantity` + %s \
