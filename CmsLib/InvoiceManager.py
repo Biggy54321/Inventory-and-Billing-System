@@ -122,12 +122,46 @@ class InvoiceManager:
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (discount, invoice_id))
 
-    # @brief This method prints the invoice for the specified InvoiceID
+    # @brief This method returns the invoice details for the specified InvoiceID
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
+    # @retval (InvoiceID, InvoiceDate, GST, CGST, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, Discount)
     @staticmethod
-    def __get_invoice(pysql, invoice_id):
-        pass
+    def __get_invoice_details(pysql, invoice_id):
+        # Get the invoice parameters
+        sql_stmt = "SELECT * \
+                    FROM `Invoices` \
+                    WHERE `InvoiceID` = %s"
+        pysql.run(sql_stmt, (invoice_id, ))
+        invoice_parameters = pysql.result[0]
+
+        # Get the invoice product details
+        sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitPrice`, `Discount` \
+                    FROM `ProductsInInvoices` \
+                    WHERE `InvoiceID` = %s"
+        pysql.run(sql_stmt, (invoice_id, ))
+        invoice_details = pysql.result
+
+        # Return the result
+        return invoice_parameters, invoice_details
+
+    # @brief This method returns the invoice parameters of all the invoices
+    #        having their invoice dates on the given date
+    # @param pysql PySql object
+    # @param date On Date (string of format "YYYY-MM-DD")
+    # @retval (InvoiceID, InvoiceDate, GST, CGST, DiscountGiven, PaymentMode) (list of tuples)
+    @staticmethod
+    def __get_invoices_by_date(pysql, date):
+        # Get the invoice parameters on the specified date
+        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `GST`, `CGST`, `DiscountGiven`, `PaymentMode` \
+                    FROM `Invoices` \
+                    WHERE DATE(`InvoiceDate`) = %s"
+        pysql.run(sql_stmt, date)
+
+        # Get the result invoice parameters
+        invoices = pysql.result
+
+        return invoices
 
     # @ref __generate_invoice
     @staticmethod
@@ -150,9 +184,16 @@ class InvoiceManager:
                                      invoice_id,
                                      discount)
 
-    # @ref __get_invoice
+    # @ref __get_invoice_details
     @staticmethod
-    def get_invoice(pysql, invoice_id):
-        return pysql.run_transaction(InvoiceManager.__get_invoice,
+    def get_invoice_details(pysql, invoice_id):
+        return pysql.run_transaction(InvoiceManager.__get_invoice_details,
                                      invoice_id,
+                                     commit = False)
+
+    # @ref __get_invoices_by_date
+    @staticmethod
+    def get_invoices_by_date(pysql, date):
+        return pysql.run_transaction(InvoiceManager.__get_invoices_by_date,
+                                     date,
                                      commit = False)

@@ -156,7 +156,7 @@ class OrderManager:
     # @brief This function returns the products in the orders
     # @param pysql PySql object
     # @param order_id OrderId
-    # @retval (ProductID, Name, Quantity, UnitType) (list of tuples)
+    # @retval (OrderID, OrderDate, Delivered?, Cancelled?), (ProductID, Name, Quantity, UnitType) (list of tuples)
     @staticmethod
     def __get_order_details(pysql, order_id):
         # Get order status
