@@ -11,7 +11,6 @@ class PySql:
     # @param flask_app Flask object to be initialized
     # @param path_to_yaml Path to the .yaml file
     def __init__(self, flask_app, path_to_yaml):
-
         # Load the yaml file
         db_details = yaml.load(open(path_to_yaml), Loader = yaml.FullLoader)
 

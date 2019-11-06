@@ -81,7 +81,7 @@ class TokenManager:
         is_assigned = TokenManager.is_token_assigned(pysql, token_id)
 
         # If token details are not null or token not assigned
-        if bool(token_details) or not is_assigned:
+        if token_details or not is_assigned:
             return
 
         # Make the assigned status false and make the invoice id null
