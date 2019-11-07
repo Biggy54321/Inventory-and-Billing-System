@@ -1,0 +1,17 @@
+<table>
+    <thead>
+        <th>Product ID</th>
+        <th>Quantity</th>
+    </thead>
+    <tbody>
+        {% for row in token_details %}
+        <tr>
+            {% for detail in row %}
+            <td>
+                {{ detail }}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
