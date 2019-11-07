@@ -183,5 +183,21 @@ def get_token_details():
     else:   
         return render_template('/TokenManager/token_home.html')        
 
+@app.route('/BillOperator', methods = ['GET', 'POST'])
+def bill_operator_home():
+    if request.method == 'POST' :
+        if 'generate_invoice' in request.form:
+            return redirect('BillOperator/GenerateInvoice')
+        elif 'update_gst_cgst' in request.form:
+            return redirect('BillOperator/UpdateCgstGst')
+        elif 'additional_discount' in request.form:
+            return redirect('BillOperator/AdditionalDiscount')
+        elif 'view_invoice_details' in request.form:
+            return redirect('BillOperator/ViewInvoice')
+        elif 'date_wise_invoice' in request.form:
+            return redirect('BillOperator/DateWiseInvoice')
+    else:
+	return render_template('/BillOperator/bill_operator_home.html')
+
 if __name__ == "__main__" :
     app.run(debug = True)
