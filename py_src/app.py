@@ -197,7 +197,7 @@ def bill_operator_home():
         elif 'date_wise_invoice' in request.form:
             return redirect('BillOperator/DateWiseInvoice')
     else:
-	return render_template('/BillOperator/bill_operator_home.html')
+	    return render_template('/BillOperator/bill_operator_home.html')
 
 if __name__ == "__main__" :
     app.run(debug = True)
