@@ -130,7 +130,7 @@ class TokenManager:
     @staticmethod
     def put_token(pysql, token_id):
         return pysql.run_transaction(TokenManager.__put_token,
-                                     token_id)
+                                     token_id, commit = True)
 
     # @ref __get_all_tokens_status
     @staticmethod
