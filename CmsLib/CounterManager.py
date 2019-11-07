@@ -27,7 +27,7 @@ class CounterManager:
 
         # Check if quantity is non zero and positive
         if quantity <= 0:
-            return 3
+            return 2
 
         # Get the displayed quantity of the product
         displayed_quantity = InventoryManager._InventoryManager__get_displayed_quantity(pysql, product_id)
