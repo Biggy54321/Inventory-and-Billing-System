@@ -76,9 +76,9 @@ class TokenManager:
     @staticmethod
     def __put_token(pysql, token_id):
         # Get the token details
-        token_details = TokenManager.get_token_details(pysql, token_id)
+        token_details = TokenManager.__get_token_details(pysql, token_id)
         # Get the assignment status of token
-        is_assigned = TokenManager.is_token_assigned(pysql, token_id)
+        is_assigned = TokenManager.__is_token_assigned(pysql, token_id)
 
         # If token details are not null or token not assigned
         if token_details or not is_assigned:

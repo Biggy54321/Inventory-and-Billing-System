@@ -136,7 +136,7 @@ class OrderManager:
 
         # Log the transactions
         for quantity, product_id in quantities_products:
-            InventoryManager.log_transaction(pysql, "INVENTORY_ADD", product_id, quantity)
+            InventoryManager._InventoryManager__log_transaction(pysql, "INVENTORY_ADD", product_id, quantity)
 
     # @brief This function returns all the order till date
     # @param pysql PySql object

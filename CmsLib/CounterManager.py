@@ -17,7 +17,7 @@ class CounterManager:
     @staticmethod
     def __add_counter_to_token(pysql, token_id, product_id, quantity):
         # Check if token is assigned
-        if not TokenManager.is_token_assigned(pysql, token_id):
+        if not TokenManager._TokenManager__is_token_assigned(pysql, token_id):
             return
 
         # Remove from displayed quantity
@@ -47,7 +47,7 @@ class CounterManager:
             pysql.run(sql_stmt, (token_id, product_id, quantity))
 
         # Log the transaction
-        InventoryManager.log_transaction(pysql, "COUNTER_SUB", product_id, quantity)
+        InventoryManager._InventoryManager__log_transaction(pysql, "COUNTER_SUB", product_id, quantity)
 
     # @brief This method adds the specified quantity of the product from
     #        the stored inventory to the counter inventory and also logs
@@ -65,7 +65,7 @@ class CounterManager:
         pysql.run(sql_stmt, (quantity, quantity, product_id))
 
         # Log the transaction
-        InventoryManager.log_transaction(pysql, "INVENTORY_TO_COUNTER", product_id, quantity)
+        InventoryManager._InventoryManager__log_transaction(pysql, "INVENTORY_TO_COUNTER", product_id, quantity)
 
     # @brief This method adds the specified quantity of the product to
     #        the counter and logs the transaction
@@ -113,7 +113,7 @@ class CounterManager:
             pysql.run(sql_stmt, (product_id, 0, quantity, 0))
 
         # Log the transaction
-        InventoryManager.log_transaction(pysql, "COUNTER_ADD", product_id, quantity)
+        InventoryManager._InventoryManager__log_transaction(pysql, "COUNTER_ADD", product_id, quantity)
 
     # @ref __add_counter_to_token
     @staticmethod

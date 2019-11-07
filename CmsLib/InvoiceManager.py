@@ -35,10 +35,10 @@ class InvoiceManager:
         has_products = 0
         for token in token_ids:
             # Check if token is assigned
-            if not TokenManager.is_token_assigned(pysql, token):
+            if not TokenManager._TokenManager__is_token_assigned(pysql, token):
                 return None
             # Check if token has any products
-            token_details = TokenManager.get_token_details(pysql, token)
+            token_details = TokenManager._TokenManager__get_token_details(pysql, token)
             # Update the total product status
             has_products = has_products or bool(token_details)
 

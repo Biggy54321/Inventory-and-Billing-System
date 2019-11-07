@@ -92,7 +92,7 @@ class InventoryManager:
         pysql.run(sql_stmt, (quantity, product_id))
 
         # Log the transaction
-        InventoryManager.log_transaction(pysql, "INVENTORY_SUB", product_id, quantity)
+        InventoryManager.__log_transaction(pysql, "INVENTORY_SUB", product_id, quantity)
 
     # @brief This method logs the transaction of a specified quantity
     #        of the product depending on the transaction type
