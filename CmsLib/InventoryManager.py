@@ -1,3 +1,6 @@
+# Import the required libraries
+from CmsLib.ProductManager import *
+
 # This variable stores the next TransactionID integer
 next_transaction_id = None
 # This variable indicates whether the next_transaction_id has been initialized
@@ -70,21 +73,53 @@ class InventoryManager:
     # @param pysql PySql object
     # @param product_id ProductID (string)
     # @param threshold Threshold (float)
+    # @retval 0 Updated successfully
+    # @retval 1 Threshold negative
+    # @retval 2 Product not found
     @staticmethod
     def __update_threshold(pysql, product_id, threshold):
+        # Check if threshold is negative
+        if threshold < 0:
+            return 1
+
+        # Check if product exists
+        sql_stmt = "SELECT 1 \
+                    FROM `Inventory` \
+                    WHERE `ProductID` = %s"
+        product_present = pysql.scalar_result
+        if not product_present:
+            return 2
+
         # Set the value of threshold to the given argument
         sql_stmt = "UPDATE `Inventory` \
                     SET `StoreThreshold` = %s \
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (threshold, product_id))
 
+        return 0
+
     # @brief This method removes the specified product quantity from the
     #        stored (local inventory) quantity and logs the transaction
     # @param pysql PySql object
     # @param product_id ProductID (string)
     # @param threshold Threshold (float)
+    # @retval 0 Transaction successfull
+    # @retval 1 Quantity not positive
+    # @retval 2 Product not found
     @staticmethod
     def __sub_product_from_inventory(pysql, product_id, quantity):
+        # Check if quantity is negative
+        if quantity < 0:
+            return 1
+
+        # Check if product exists
+        sql_stmt = "SELECT 1 \
+                    FROM `Inventory` \
+                    WHERE `ProductID` = %s"
+        product_present = pysql.scalar_result
+        if not product_present:
+            return 2
+
         # Subtract the specified quantity of the product
         sql_stmt = "UPDATE `Inventory` \
                     SET `StoredQuantity` = `StoredQuantity` - %s \
@@ -94,12 +129,18 @@ class InventoryManager:
         # Log the transaction
         InventoryManager.__log_transaction(pysql, "INVENTORY_SUB", product_id, quantity)
 
+        return 0
+
     # @brief This method logs the transaction of a specified quantity
     #        of the product depending on the transaction type
     # @param pysql PySql object
     # @param transaction_type TransactionType (string enum)
     # @param product_id ProductID (string)
     # @param quantity Product quantity (float)
+    # @retval 0 Transaction successfull
+    # @retval 1 Transaction type invalid
+    # @retval 2 Product not found
+    # @retval 3 Quantity negative
     @staticmethod
     def __log_transaction(pysql, transaction_type, product_id, quantity):
         # Fetch the global variables
@@ -114,6 +155,18 @@ class InventoryManager:
             next_transaction_id = pysql.scalar_result
             next_transaction_id_read = 1
 
+        # Check if transaction type is valid
+        if transaction_type not in ["COUNTER_ADD", "COUNTER_SUB", "INVENTORY_TO_COUNTER", "INVENTORY_ADD", "INVENTORY_SUB"]:
+            return 1
+
+        # Check if product exists
+        if not ProductManager._Product_Manager__is_product_id_used(pysql, product_id):
+            return 2
+
+        # Check if quantity is positive
+        if quantity <= 0:
+            return 3
+
         # Get the string transaction id
         transaction_id = "TRC-" + format(next_transaction_id, "010d")
 
@@ -124,6 +177,8 @@ class InventoryManager:
 
         # Increment the global transaction id count
         next_transaction_id += 1
+
+        return 0
 
     # @brief This method returns the details of all the products
     #        in the inventory
