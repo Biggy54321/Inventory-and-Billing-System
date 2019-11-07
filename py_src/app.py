@@ -90,10 +90,9 @@ def cancel_order():
         return render_template('/InventoryManager/cancel_order.html')
 
 @app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
-def view_inventory():    
+def view_inventory():
     data = InventoryManager.get_inventory_details(pysql)
     return render_template('/InventoryManager/view_inventory.html', data=data)
-    
 
 @app.route('/InventoryManager/ViewProducts', methods = ['GET', 'POST'])
 def view_products():
@@ -152,12 +151,6 @@ def token_manager_home():
 @app.route('/TokenManager/Token_Statuses', methods = ['GET', 'POST'])
 def token_statuses():
     statuses = TokenManager.get_all_tokens_status(pysql)
-    print (statuses)
-    '''for status in statuses :
-        if status[1] == 0:
-            status[1] = "No"
-        else:
-            status[1] = "Yes"'''
     return render_template('/TokenManager/token_statuses.html', statuses = statuses)
 
 @app.route('/TokenManager/Get_Token', methods = ['GET', 'POST'])
@@ -180,8 +173,8 @@ def get_token_details():
         token_id = request.form['token_id']
         token_details = TokenManager.get_token_details(pysql, token_id)
         return render_template('/TokenManager/get_token_details.html', token_details = token_details)
-    else:   
-        return render_template('/TokenManager/token_home.html')        
+    else:
+        return render_template('/TokenManager/token_home.html')
 
 @app.route('/BillOperator', methods = ['GET', 'POST'])
 def bill_operator_home():
