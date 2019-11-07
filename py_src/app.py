@@ -160,7 +160,6 @@ def get_token_details():
     else:
         return render_template('/TokenManager/token_home.html')        
 
-
 if __name__ == "__main__" :
     app.run(debug = True)
 

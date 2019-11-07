@@ -100,7 +100,7 @@ class TokenManager:
         # Get the all the products of the given token
         sql_stmt = "SELECT `TokenID`, `Assigned?` \
                     FROM `Tokens`"
-        pysql.run(sql_stmt, (token_id, ))
+        pysql.run(sql_stmt)
 
         # Get the token statuses
         token_status = pysql.result
