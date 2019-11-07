@@ -1,0 +1,17 @@
+<table>
+    <thead>
+        <th>Token ID</th>
+        <th>Assigned ?</th>
+    </thead>
+    <tbody>
+        {% for status in statuses %}
+        <tr>
+            {% for d in status %}
+            <td>
+                {{ d }}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -13,7 +13,9 @@ def index():
 @app.route('/InventoryManager', methods = ['GET', 'POST'])
 def load_inventory_modules():
     if request.method == 'POST' :
-        if 'place_order' in request.form:
+        if 'add_product' in request.form:
+            return redirect('InventoryManager/AddProduct')
+        elif 'place_order' in request.form:
             return redirect('InventoryManager/PlaceOrder')
         elif 'receive_order' in request.form:
             return redirect('InventoryManager/ReceiveOrder')
@@ -32,7 +34,21 @@ def load_inventory_modules():
         elif 'products_in_inv_transactions' in request.form:
             return redirect('InventoryManager/ProductsInInvTransactions')
 
-    return render_template('InventoryManager/inventory_manager_home.html')
+    return render_template('/InventoryManager/inventory_manager_home.html')
+
+@app.route('/InventoryManager/AddProduct', methods = ['GET', 'POST'])
+def add_product():
+    if request.method == 'POST':
+        product_id = request.form['product_id'].strip()
+        name = request.form['name'].strip()
+        description = request.form['description'].strip()
+        unit_price = request.form['unit_price'].strip()
+        unit_type = request.form['unit_type'].strip()
+        current_discount = request.form['current_discount'].strip()
+        ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount)
+        return redirect('../InventoryManager')
+    else:
+        return render_template('InventoryManager/add_product.html')
 
 @app.route('/InventoryManager/PlaceOrder', methods = ['GET', 'POST'])
 def place_order():
@@ -122,13 +138,13 @@ def transactions_of_product_on_date():
 @app.route('/TokenManager', methods = ['GET', 'POST'])
 def token_manager_home():
     if request.method == 'POST':
-        if get_token_statuses in request.form:
+        if 'get_token_statuses' in request.form:
             return redirect('/TokenManager/Token_Statuses')
-        elif get_token in request.form:
+        elif 'get_token' in request.form:
             return redirect('/TokenManager/Get_Token')
-        elif return_token in request.form:
+        elif 'return_token' in request.form:
             return redirect('/TokenManager/Return_Token')
-        elif get_token_details in request.form:
+        elif 'get_token_details' in request.form:
             return redirect('/TokenManager/Get_Token_Details')
     else:
         return render_template('/TokenManager/token_manager_home.html')
@@ -136,6 +152,12 @@ def token_manager_home():
 @app.route('/TokenManager/Token_Statuses', methods = ['GET', 'POST'])
 def token_statuses():
     statuses = TokenManager.get_all_tokens_status(pysql)
+    print (statuses)
+    '''for status in statuses :
+        if status[1] == 0:
+            status[1] = "No"
+        else:
+            status[1] = "Yes"'''
     return render_template('/TokenManager/token_statuses.html', statuses = statuses)
 
 @app.route('/TokenManager/Get_Token', methods = ['GET', 'POST'])
@@ -148,19 +170,34 @@ def return_token():
     if request.method == 'POST':
         token_id = request.form['token_id']
         TokenManager.put_token(pysql, token_id)
+        return render_template('/TokenManager/successfully_returned.html')
     else:
-        return render_template('TokenManager/token_home.html')
+        return render_template('/TokenManager/token_home.html')
 
-@app.route('/TokenManger/Get_Token_Details')
+@app.route('/TokenManager/Get_Token_Details', methods=['GET', 'POST'])
 def get_token_details():
     if request.method == 'POST':
         token_id = request.form['token_id']
         token_details = TokenManager.get_token_details(pysql, token_id)
         return render_template('/TokenManager/get_token_details.html', token_details = token_details)
-    else:
+    else:   
         return render_template('/TokenManager/token_home.html')        
 
+@app.route('/BillOperator', methods = ['GET', 'POST'])
+def bill_operator_home():
+    if request.method == 'POST' :
+        if 'generate_invoice' in request.form:
+            return redirect('BillOperator/GenerateInvoice')
+        elif 'update_gst_cgst' in request.form:
+            return redirect('BillOperator/UpdateCgstGst')
+        elif 'additional_discount' in request.form:
+            return redirect('BillOperator/AdditionalDiscount')
+        elif 'view_invoice_details' in request.form:
+            return redirect('BillOperator/ViewInvoice')
+        elif 'date_wise_invoice' in request.form:
+            return redirect('BillOperator/DateWiseInvoice')
+    else:
+	    return render_template('/BillOperator/bill_operator_home.html')
 
 if __name__ == "__main__" :
     app.run(debug = True)
-
