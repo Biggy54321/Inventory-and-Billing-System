@@ -12,8 +12,30 @@ class ProductManager:
     # @param unit_price Price per unit (float)
     # @param unit_type Type of units (enum string)
     # @param current_discount Discount in percentage (float)
+    # @retval 0 Added product successfully
+    # @retval 1 Product id already used
+    # @retval 2 Unit prive not positive
+    # @retval 3 Unit type not valid
+    # @retval 4 Discount negative
     @staticmethod
     def __add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount):
+        # Check if product already exists
+        if ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+            return 1
+
+        # Check if unit price is positive
+        if unit_price < 1:
+            return 2
+
+        # Check if unit type is right
+        if unit_type not in ["cash", "card", "wallet"]:
+            return 3
+
+        # Check if discount not negative
+        if current_discount and current_discount < 0:
+            return 4
+
+
         # Check if discount is specified
         if current_discount:
             sql_stmt = "INSERT INTO `Products` \
@@ -24,41 +46,77 @@ class ProductManager:
                         VALUES (%s, %s, %s, %s, %s)"
             pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type))
 
+            return 0
+
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object
     # @param product_id ProductID
     # @param discount New value of current discount
+    # @retval 0 Updated successfully
+    # @retval 1 Product not found
+    # @retval 2 Discount negative
     @staticmethod
     def __update_product_discount(pysql, product_id, discount):
+        # Check if product exists
+        if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+            return 1
+
+        # Check if discount is negative
+        if discount < 0:
+            return 2
+
         # Update the current discount field
         sql_stmt = "UPDATE `Products` \
                     SET `CurrentDiscount` = %s \
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (discount, product_id))
 
+        return 0
+
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object
     # @param product_id ProductID
     # @param price New value of unit price
+    # @retval 0 Updated successfully
+    # @retval 1 Product not found
+    # @retval 2 Price not positive
     @staticmethod
     def __update_product_price(pysql, product_id, price):
+        # Check if product exists
+        if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+            return 1
+
+        # Check if discount is not positive
+        if price <= 0:
+            return 2
+
         # Update the unit price field
         sql_stmt = "UPDATE `Products` \
                     SET `UnitPrice` = %s \
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (price, product_id))
 
+        return 0
+
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object
     # @param product_id ProductID
     # @param description New description for the product
+    # @retval 0 Updated successfully
+    # @retval 1 Product not found
     @staticmethod
     def __update_description(pysql, product_id, description):
+        # Check if product exists
+        if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+            return 1
+
         # Update the description field
         sql_stmt = "UPDATE `Products` \
                     SET `Description` = %s \
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (description, product_id))
+
+        return 0
 
     # @brief This method checks if the given primary key is already
     #        present in the Products relation

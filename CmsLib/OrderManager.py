@@ -1,5 +1,6 @@
 # Import the required modules
 from CmsLib.InventoryManager import *
+from CmsLib.ProductManager import *
 
 # This variable stores the next OrderID integer
 next_order_id = None
@@ -16,6 +17,8 @@ class OrderManager:
     # @param pysql PySql object
     # @param products_quantities (ProductID, Quantity) (list of tuples)
     # @retval order_id The OrderId (string)
+    # @retval 1 One of the products not found
+    # @retval 2 One of the quantities was not positive
     @staticmethod
     def __place_order(pysql, products_quantities):
         # Fetch the global variables
@@ -29,6 +32,15 @@ class OrderManager:
             pysql.run(sql_stmt)
             next_order_id = pysql.scalar_result
             next_order_id_read = 1
+
+        # Check for each product id and quantity
+        for product_id, quantity in products_quantities:
+            # If product not exists
+            if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+                return 1
+            # If quantity not positive
+            if quantity <= 0:
+                return 2
 
         # Create the order id
         order_id = "ORD-" + format(next_order_id, "010d")
@@ -65,7 +77,7 @@ class OrderManager:
         pysql.run(sql_stmt, (order_id, ))
 
         # Get order status
-        order_status = pysql.result[0]
+        order_status = pysql.first_result
 
         # If order status not found
         if not order_status:
@@ -77,14 +89,24 @@ class OrderManager:
     #        and not already cancelled
     # @param pysql PySql object
     # @param order_id OrderID (string)
+    # @retval 0 Order cancelled successfully
+    # @retval 1 Order not found
+    # @retval 2 Order already delivered
+    # @retval 3 Order already cancelled
     @staticmethod
     def __cancel_order(pysql, order_id):
         # Get the order status
         is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
 
-        # If order is already delivered or cancelled
-        if is_delivered or is_cancelled:
-            return
+        # Check if order exists
+        if is_delivered and is_cancelled:
+            return 1
+        # Check if order is delivered
+        if is_delivered:
+            return 2
+        # Check if order is cancelled
+        if is_cancelled:
+            return 3
 
         # Set the status of order as cancelled and delivered as NULL
         sql_stmt = "UPDATE `Orders` \
@@ -93,18 +115,30 @@ class OrderManager:
                     WHERE `OrderID` = %s"
         pysql.run(sql_stmt, (order_id, ))
 
+        return 0
+
     # @brief This method receives the order i.e. updates the stored
     #        inventory quantities and marks the order as delivered
     # @param pysql PySql object
     # @param order_id OrderID of the order received (string)
+    # @retval 0 Order cancelled successfully
+    # @retval 1 Order not found
+    # @retval 2 Order already delivered
+    # @retval 3 Order already cancelled
     @staticmethod
     def __receive_order(pysql, order_id):
         # Get the order status
         is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
 
-        # If order is already delivered or cancelled
-        if is_delivered or is_cancelled:
-            return
+        # Check if order exists
+        if is_delivered and is_cancelled:
+            return 1
+        # Check if order is delivered
+        if is_delivered:
+            return 2
+        # Check if order is cancelled
+        if is_cancelled:
+            return 3
 
         # Get all the products and quantities of the given order
         sql_stmt = "SELECT `Quantity`, `ProductID` \
@@ -137,6 +171,8 @@ class OrderManager:
         # Log the transactions
         for quantity, product_id in quantities_products:
             InventoryManager._InventoryManager__log_transaction(pysql, "INVENTORY_ADD", product_id, quantity)
+
+        return 0
 
     # @brief This function returns all the order till date
     # @param pysql PySql object

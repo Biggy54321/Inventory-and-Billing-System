@@ -14,11 +14,31 @@ class CounterManager:
     # @param token_id TokenID (string)
     # @param product_id ProductID (string)
     # @param quantity Product Quantity (float)
+    # @retval 0 Transaction successfull
+    # @retval 1 Token not found or is not assigned
+    # @retval 2 Quantity negative
+    # @retval 3 Product not found in inventory
+    # @retval 4 Quantity not sufficient in inventory
     @staticmethod
     def __add_counter_to_token(pysql, token_id, product_id, quantity):
         # Check if token is assigned
         if not TokenManager._TokenManager__is_token_assigned(pysql, token_id):
-            return
+            return 1
+
+        # Check if quantity is non zero and positive
+        if quantity <= 0:
+            return 2
+
+        # Get the displayed quantity of the product
+        displayed_quantity = InventoryManager._InventoryManager__get_displayed_quantity(pysql, product_id)
+
+        # Check if product exists
+        if not displayed_quantity:
+            return 3
+
+        # Check if quantity is sufficient
+        if displayed_quantity < quantity:
+            return 4
 
         # Remove from displayed quantity
         sql_stmt = "UPDATE `Inventory` \
@@ -49,14 +69,35 @@ class CounterManager:
         # Log the transaction
         InventoryManager._InventoryManager__log_transaction(pysql, "COUNTER_SUB", product_id, quantity)
 
+        return 0
+
     # @brief This method adds the specified quantity of the product from
     #        the stored inventory to the counter inventory and also logs
     #        the transaction
     # @param pysql PySql object
     # @param product_id ProductID  (string)
     # @param quantity Product Quantity (float)
+    # @retval 0 Transaction successfull
+    # @retval 1 Quantity negative
+    # @retval 2 Product not found in inventory
+    # @retval 3 Quantity not sufficient
     @staticmethod
     def __add_inventory_to_counter(pysql, product_id, quantity):
+        # Get the stored quantity
+        stored_quantity = InventoryManager._InventoryManager__get_stored_quantity(pysql, product_id)
+
+        # Check if quantity is negative
+        if quantity <= 0:
+            return 1
+
+        # Check if product exists
+        if not stored_quantity:
+            return 2
+
+        # Check if stored quantity is sufficient
+        if stored_quantity < quantity:
+            return 3
+
         # Remove from inventory
         sql_stmt = "UPDATE `Inventory` \
                     SET `DisplayedQuantity` = `DisplayedQuantity` + %s, \
@@ -67,11 +108,15 @@ class CounterManager:
         # Log the transaction
         InventoryManager._InventoryManager__log_transaction(pysql, "INVENTORY_TO_COUNTER", product_id, quantity)
 
+        return 0
+
     # @brief This method adds the specified quantity of the product to
     #        the counter and logs the transaction
     # @param pysql PySql object
     # @param token_id TokenID (string)
     # @param product_id ProductID (string)
+    # @retval 0 Transaction successfull
+    # @retval 1 Product not owned by Token
     @staticmethod
     def __add_token_to_counter(pysql, token_id, product_id):
         # Get the current quantity of products in the token
@@ -85,7 +130,7 @@ class CounterManager:
 
         # End if quantity is none
         if not quantity:
-            return
+            return 1
 
         # Remove the product from the product
         sql_stmt = "DELETE FROM `TokensSelectProducts` \
@@ -114,6 +159,8 @@ class CounterManager:
 
         # Log the transaction
         InventoryManager._InventoryManager__log_transaction(pysql, "COUNTER_ADD", product_id, quantity)
+
+        return 0
 
     # @ref __add_counter_to_token
     @staticmethod

@@ -90,10 +90,9 @@ def cancel_order():
         return render_template('/InventoryManager/cancel_order.html')
 
 @app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
-def view_inventory():    
+def view_inventory():
     data = InventoryManager.get_inventory_details(pysql)
     return render_template('/InventoryManager/view_inventory.html', data=data)
-    
 
 @app.route('/InventoryManager/ViewProducts', methods = ['GET', 'POST'])
 def view_products():
@@ -146,18 +145,16 @@ def token_manager_home():
             return redirect('/TokenManager/Return_Token')
         elif 'get_token_details' in request.form:
             return redirect('/TokenManager/Get_Token_Details')
+        elif 'add_token' in request.form:
+            return redirect('/TokenManager/Add_Token')
+        elif 'remove_token' in request.form:
+            return redirect('/TokenManager/Remove_Token')
     else:
         return render_template('/TokenManager/token_manager_home.html')
 
 @app.route('/TokenManager/Token_Statuses', methods = ['GET', 'POST'])
 def token_statuses():
     statuses = TokenManager.get_all_tokens_status(pysql)
-    print (statuses)
-    '''for status in statuses :
-        if status[1] == 0:
-            status[1] = "No"
-        else:
-            status[1] = "Yes"'''
     return render_template('/TokenManager/token_statuses.html', statuses = statuses)
 
 @app.route('/TokenManager/Get_Token', methods = ['GET', 'POST'])
@@ -180,8 +177,92 @@ def get_token_details():
         token_id = request.form['token_id']
         token_details = TokenManager.get_token_details(pysql, token_id)
         return render_template('/TokenManager/get_token_details.html', token_details = token_details)
-    else:   
-        return render_template('/TokenManager/token_home.html')        
+    else:
+        return render_template('/TokenManager/token_home.html')
+
+@app.route('/TokenManager/Add_Token', methods = ['GET', 'POST'])
+def add_token():
+    pass
+
+@app.route('/TokenManager/Remove_Token', methods = ['GET', 'POST'])
+def remove_token():
+    if request.method == 'POST':
+        token_id = request.form['token_id']
+        retval = TokenManager.remove_token(pysql, token_id)
+        if retval == 0:
+            return redirect('/TokenManager/Remove_Token')
+        elif retval == 1:
+            return render_template('/TokenManager/failure_remove_token.html', reason = "Token already has products. Please remove them before proceeding.")
+        elif retval == 2:
+            return render_template('/TokenManager/failure_remove_token.html', reason = "Token is already assigned. Please desassign it to continue.")
+    else:
+        return render_template('/TokenManager/token_home.html')
+
+@app.route('/CounterOperator', methods = ['GET', 'POST'])
+def counter_operator_home():
+    if request.method == 'POST':
+        if add_counter_to_token in request.form:
+            return redirect('/CounterOperator/Add_Products_To_Token')
+        if add_inventory_to_counter in request.form:
+            return redirect('/CounterOpeator/Add_Inventory_To_Counter')
+        if add_token_to_counter in request.form:
+            return redirect('/CounterOperator/Add_Token_To_Counter')
+    else:
+        return render_template('/CounterOperator/counter_operator_home.html')
+
+@app.route('/CounterOperator/Add_Products_To_Token', methods=['GET', 'POST'])
+def add_products_to_token():
+    if request.method == 'POST':
+        token_id = request.form['token_id']
+        product_id = request.form['product_id']
+        quantity = request.form['quantity']
+        retval = CounterManager.add_counter_to_token(pysql, token_id, product_id, quantity)
+        if retval == 0:
+            return redirect('/CounterOperator/Add_Products_To_Token')
+        elif retval == 1:
+            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Token not found or is not assigned")
+        elif retval == 2:
+            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Quantity Negative")
+        elif retval == 3:
+            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Product not found in inventory")
+        elif retval == 4:
+            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Quantity not sufficient in inventory")
+    else:
+        return render_template('/CounterOperator/add_products_to_home.html')
+
+@app.route('/CounterOperator/Add_Inventory_To_Counter')
+def add_inventory_to_counter():
+    if request.method == 'POST':
+        product_id = request.form['product_id']
+        quantity = request.form['quantity']
+        retval = CounterManager.add_inventory_to_counter(pysql, product_id, quantity)
+        if retval == 0:
+            return redirect('/CounterOperator/Add_Inventory_To_Counter')
+        elif retval == 1:
+            return render_template('/CounterOperator/failure.html', reason = "Quantity Negative")
+        elif retval == 2:
+            return render_template('/CounterManager/failure.html', reason = "Product not found in inventory")
+        elif retval == 3:
+            return render_template('/CounterManager/failure.html', reason = "Quantity in warehouse not sufficient")
+    else:
+        return render_template('/CounterOperator/add_inventory_to_counter.html')
+
+@app.route('/CounterOperator/Add_Token_To_Counter')
+def add_token_to_counter():
+    if request.method == 'POST':
+        token_id = request.form['token_id']
+        product_id = request.form['product_id']
+        retval = CounterManager.add_token_to_counter(pysql, token_id, product_id)
+        if retval == 0:
+            return redirect('/CounterOperator/Add_Token_To_Counter')
+        elif retval == 1:
+            return render_template('/CounterManager/failure.html', reason = "Product not present in selected Token")
+    else:
+        return render_template('/CounterManager/add_token_to_counter.html')
+
+        
+
+        
 
 @app.route('/BillOperator', methods = ['GET', 'POST'])
 def bill_operator_home():

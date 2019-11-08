@@ -16,7 +16,9 @@ class InvoiceManager:
     # @param token_ids Token Ids (list of strings)
     # @param payment_mode Payment mode (enum string)
     # @retval invoice_id The invoice id created (string)
-    # @retval None For discrepancy in the tokens
+    # @retval 1 One of the tokens not found
+    # @retval 2 No products to be billed
+    # @retval 3 Payment mode incorrect
     @staticmethod
     def __generate_invoice(pysql, token_ids, payment_mode):
         # Get the global variables
@@ -36,14 +38,18 @@ class InvoiceManager:
         for token in token_ids:
             # Check if token is assigned
             if not TokenManager._TokenManager__is_token_assigned(pysql, token):
-                return None
+                return 1
             # Check if token has any products
             token_details = TokenManager._TokenManager__get_token_details(pysql, token)
             # Update the total product status
             has_products = has_products or bool(token_details)
 
         if not has_products:
-            return None
+            return 2
+
+        # Check the payment mode
+        if payment_mode not in ["cash", "card", "wallet"]:
+            return 3
 
         # Create an invoice id
         invoice_id = "INV-" + format(next_invoice_id, "010d")
@@ -99,8 +105,16 @@ class InvoiceManager:
     # @param pysql PySql object
     # @param gst New value of GST in percentage (float)
     # @param cgst New value of CGST in percentage (float)
+    # @retval 0 Updated successfully
+    # @retval 1 Input incorrect
     @staticmethod
     def __update_gst_cgst(pysql, gst, cgst):
+        # Check the inputs
+        if not 0 <= gst <= 100:
+            return 1
+        if not 0 <= cgst <= 100:
+            return 1
+
         # Update GST
         sql_stmt = "ALTER TABLE `Invoices` \
                     ALTER `GST` SET DEFAULT %s"
@@ -110,17 +124,38 @@ class InvoiceManager:
                     ALTER `CGST` SET DEFAULT %s"
         pysql.run(sql_stmt, (cgst, ))
 
+        return 0
+
     # @brief This method updates the discount for a particular invoice
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
     # @param discount The discount amount given (float)
+    # @retval 0 Discount given successfully
+    # @retval 1 Invoice not found
+    # @retval 2 Discount negative
     @staticmethod
     def __give_additional_discount(pysql, invoice_id, discount):
+        # Check if invoice exists
+        sql_stmt = "SELECT 1 \
+                    FROM `Invoices` \
+                    WHERE `InvoiceID` = %s"
+        pysql.run(sql_stmt, (invoice_id, ))
+        invoice_present = pysql.scalar_result
+
+        if not invoice_present:
+            return 1
+
+        # Check if discount is negative
+        if discount < 0:
+            return 2
+
         # Update the discount value
         sql_stmt = "UPDATE `Invoices` \
                     SET `DiscountGiven` = %s \
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (discount, invoice_id))
+
+        return 0
 
     # @brief This method returns the invoice details for the specified InvoiceID
     # @param pysql PySql object
@@ -133,7 +168,7 @@ class InvoiceManager:
                     FROM `Invoices` \
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (invoice_id, ))
-        invoice_parameters = pysql.result[0]
+        invoice_parameters = pysql.first_result
 
         # Get the invoice product details
         sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitPrice`, `Discount` \

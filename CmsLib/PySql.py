@@ -76,6 +76,15 @@ class PySql:
         except IndexError:
             return None
 
+    # @brief This property can be used as a normal field of the pysql object
+    #        to get the first tuple of the result relation
+    @property
+    def first_result(self):
+        try:
+            return self.__result()[0]
+        except IndexError:
+            return None
+
     # @brief This method updates the remote database with the updates
     #        made to the local database
     def commit(self):
@@ -92,7 +101,7 @@ class PySql:
     # @param args List of arguments to the function
     # @param commit Boolean to specify wether to commit or not
     # @retval Return value of the function
-    # @retval None For error
+    # @note This function will loop on forever in an error occurs
     def run_transaction(self, function, *args, commit = True):
         try:
             # Initialize the pysql object
@@ -100,13 +109,13 @@ class PySql:
 
             # Execute the function
             result = function(self, *args)
-        except Exception as e:
-
+        except:
             # Rollback the changes
             self.rollback()
 
-            # Return failure
-            return None
+            # Loop forever
+            while True:
+                pass
         else:
             # Commit the changes is specified
             if commit:
