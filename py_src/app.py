@@ -249,11 +249,9 @@ def add_products_to_token():
     else:
         return render_template('/CounterOperator/add_products_to_token.html')
 
-@app.route('/CounterOperator/Add_Inventory_To_Counter')
+@app.route('/CounterOperator/Add_Inventory_To_Counter', methods=['GET', 'POST'])
 def add_inventory_to_counter():
-    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
     if request.method == 'POST':
-        print ("***************************************")
         product_id = request.form['product_id']
         quantity = request.form['quantity'].strip()
         if len(quantity) == 0:
@@ -265,13 +263,13 @@ def add_inventory_to_counter():
         elif retval == 1:
             return render_template('/CounterOperator/failure_inventory_to_counter.html', reason = "Quantity Negative")
         elif retval == 2:
-            return render_template('/CounterManager/failure_inventory_to_counter.html', reason = "Product not found in inventory")
+            return render_template('/CounterOperator/failure_inventory_to_counter.html', reason = "Product not found in inventory")
         elif retval == 3:
-            return render_template('/CounterManager/failure_inventory_to_counter.html', reason = "Quantity in warehouse not sufficient")
+            return render_template('/CounterOperator/failure_inventory_to_counter.html', reason = "Quantity in warehouse not sufficient")
     else:
         return render_template('/CounterOperator/add_inventory_to_counter.html')
 
-@app.route('/CounterOperator/Add_Token_To_Counter')
+@app.route('/CounterOperator/Add_Token_To_Counter', methods=['GET', 'POST'])
 def add_token_to_counter():
     if request.method == 'POST':
         token_id = request.form['token_id']
@@ -280,7 +278,7 @@ def add_token_to_counter():
         if retval == 0:
             return render_template('/CounterOperator/success_token_to_counter.html')
         elif retval == 1:
-            return render_template('/CounterManager/failure.html', reason = "Product not present in selected Token")
+            return render_template('/CounterManager/failure_token_to_counter.html', reason = "Product not present in selected Token")
     else:
         return render_template('/CounterManager/add_token_to_counter.html')
 
