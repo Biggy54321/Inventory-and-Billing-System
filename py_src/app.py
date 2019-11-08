@@ -184,7 +184,9 @@ def get_token_details():
 def add_token():
     new_token_id = TokenManager.add_token()
     if new_token_id == 1:
-        return render_template('TokenManager/add_token_failure.html', reason = "New token cannot be added")
+        return render_template('/TokenManager/add_token_failure.html', reason = "New token cannot be added")
+    else:
+        return render_template('/TokenManager/add_token_success.html', token_id=token_id)
 
 @app.route('/TokenManager/Remove_Token', methods = ['GET', 'POST'])
 def remove_token():
