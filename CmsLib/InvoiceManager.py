@@ -16,7 +16,7 @@ class InvoiceManager:
     # @param token_ids Token Ids (list of strings)
     # @param payment_mode Payment mode (enum string)
     # @retval invoice_id The invoice id created (string)
-    # @retval 1 One of the tokens not found
+    # @retval 1 One of the tokens not found or not assigned
     # @retval 2 No products to be billed
     # @retval 3 Payment mode incorrect
     @staticmethod
@@ -34,17 +34,21 @@ class InvoiceManager:
             next_invoice_id_read = 1
 
         # Check if tokens are all assigned and the total is not null
-        has_products = 0
+        invoice_has_products = 0
         for token in token_ids:
-            # Check if token is assigned
-            if not TokenManager._TokenManager__is_token_assigned(pysql, token):
-                return 1
-            # Check if token has any products
-            token_details = TokenManager._TokenManager__get_token_details(pysql, token)
-            # Update the total product status
-            has_products = has_products or bool(token_details)
+            # Get the token assignment status
+            is_assigned = TokenManager._TokenManager__is_token_assigned(pysql, token)
+            # Get the token product status
+            token_has_products = TokenManager._TokenManager__token_has_products(pysql, token)
 
-        if not has_products:
+            # Check if token is assigned
+            if not is_assigned:
+                return 1
+
+            # Update the total product status
+            invoice_has_products = invoice_has_products or token_has_products
+
+        if not invoice_has_products:
             return 2
 
         # Check the payment mode
@@ -136,7 +140,7 @@ class InvoiceManager:
     @staticmethod
     def __give_additional_discount(pysql, invoice_id, discount):
         # Check if invoice exists
-        sql_stmt = "SELECT 1 \
+        sql_stmt = "SELECT COUNT(*) \
                     FROM `Invoices` \
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (invoice_id, ))

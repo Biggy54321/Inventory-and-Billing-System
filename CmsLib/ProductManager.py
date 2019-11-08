@@ -19,8 +19,11 @@ class ProductManager:
     # @retval 4 Discount negative
     @staticmethod
     def __add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount):
+        # Get the product existence status
+        product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
+
         # Check if product already exists
-        if ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+        if product_exists:
             return 1
 
         # Check if unit price is positive
@@ -34,7 +37,6 @@ class ProductManager:
         # Check if discount not negative
         if current_discount and current_discount < 0:
             return 4
-
 
         # Check if discount is specified
         if current_discount:
@@ -57,8 +59,11 @@ class ProductManager:
     # @retval 2 Discount negative
     @staticmethod
     def __update_product_discount(pysql, product_id, discount):
+        # Get the product existence status
+        product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
+
         # Check if product exists
-        if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+        if not product_exists:
             return 1
 
         # Check if discount is negative
@@ -82,8 +87,11 @@ class ProductManager:
     # @retval 2 Price not positive
     @staticmethod
     def __update_product_price(pysql, product_id, price):
+        # Get the product existence status
+        product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
+
         # Check if product exists
-        if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+        if not product_exists:
             return 1
 
         # Check if discount is not positive
@@ -106,8 +114,11 @@ class ProductManager:
     # @retval 1 Product not found
     @staticmethod
     def __update_description(pysql, product_id, description):
+        # Get the product existence status
+        product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
+
         # Check if product exists
-        if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+        if not product_exists:
             return 1
 
         # Update the description field
@@ -118,25 +129,24 @@ class ProductManager:
 
         return 0
 
-    # @brief This method checks if the given primary key is already
+    # @brief This method checks if the given product is already
     #        present in the Products relation
     # @param pysql PySql object
     # @param product_id ProductID
-    # @retval 0 The product id is not used
-    # @retval 1 The product id is already used
+    # @retval 0 The product not present
+    # @retval 1 The product already present
     @staticmethod
-    def __is_product_id_used(pysql, product_id):
+    def __product_exists(pysql, product_id):
         # Get the product id of the given product
-        sql_stmt = "SELECT `ProductID` \
+        sql_stmt = "SELECT COUNT(*) \
                     FROM `Products` \
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (product_id, ))
 
         # Get the result
-        is_used = len(pysql.result)
+        product_exists = pysql.scalar_result
 
-        return is_used
-
+        return product_exists
 
     # @brief This method returns all the products information
     # @param pysql PySql object
@@ -204,8 +214,8 @@ class ProductManager:
 
     # @ref __is_product_id_used
     @staticmethod
-    def is_product_id_used(pysql, product_id):
-        return pysql.run_transaction(ProductManager.__is_product_id_used,
+    def product_exists(pysql, product_id):
+        return pysql.run_transaction(ProductManager.__product_exists,
                                      product_id,
                                      commit = False)
 
