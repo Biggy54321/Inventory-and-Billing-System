@@ -1,4 +1,0 @@
-1. Statuses of all tokens (token_id)
-2. Get a token () returns token_id
-3. Deassign a token (token_id)
-4. Get token details (token_id)

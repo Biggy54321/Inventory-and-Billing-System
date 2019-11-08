@@ -101,7 +101,7 @@ class CounterManager:
             return 2
 
         # Check if quantity is sufficient
-        if displayed_quantity < quantity:
+        if stored_quantity < quantity:
             return 3
 
         # Remove from inventory
@@ -147,7 +147,7 @@ class CounterManager:
         sql_stmt = "SELECT 1 \
                     FROM `Inventory` \
                     WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (product_id))
+        pysql.run(sql_stmt, (product_id, ))
         # Get the result
         product_present = pysql.scalar_result
 

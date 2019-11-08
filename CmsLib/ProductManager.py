@@ -14,7 +14,7 @@ class ProductManager:
     # @param current_discount Discount in percentage (float)
     # @retval 0 Added product successfully
     # @retval 1 Product id already used
-    # @retval 2 Unit prive not positive
+    # @retval 2 Unit price not positive
     # @retval 3 Unit type not valid
     # @retval 4 Discount negative
     @staticmethod

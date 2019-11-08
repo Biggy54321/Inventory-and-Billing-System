@@ -1,0 +1,21 @@
+<h1>Orders on {{ date }} : </h1><br><br>
+
+<table  border="1" cellpadding="5" cellspacing="5">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Date Time</th>
+            <th>Delivered?</th>
+            <th>Cancelled?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in orders %}
+        <tr>
+            {% for d in row %}
+            <td>{{ d }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
