@@ -260,10 +260,6 @@ def add_token_to_counter():
     else:
         return render_template('/CounterManager/add_token_to_counter.html')
 
-        
-
-        
-
 @app.route('/BillOperator', methods = ['GET', 'POST'])
 def bill_operator_home():
     if request.method == 'POST' :
@@ -283,32 +279,37 @@ def bill_operator_home():
 @app.route('/BillOperator/GenerateInvoice', methods = ['GET', 'POST'])
 def generate_invoice():
     if request.method == 'POST':
+        print("Yes")
     else:
-        return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/generate_invoice_home.html')
 
 @app.route('/BillOperator/UpdateCgstGst', methods = ['GET', 'POST'])
 def update_gst_cgst():
     if request.method == 'POST':
+        print("Yes")
     else:
-        return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/update_gst.html')
 
 @app.route('/BillOperator/AdditionalDiscount', methods = ['GET', 'POST'])
 def additional_discount():
     if request.method == 'POST':
+        print("Yes")
     else:
-        return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/additional_discount.html')
 
 @app.route('/BillOperator/ViewInvoice', methods = ['GET', 'POST'])
 def view_invoice_details():
     if request.method == 'POST':
+        print("Yes")
     else:
-        return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/view_invoice_details_home.html')
 
 @app.route('/BillOperator/DateWiseInvoice', methods = ['GET', 'POST'])
 def date_wise_invoice():
     if request.method == 'POST':
+        print("Yes")
     else:
-        return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/date_wise_invoice_home.html')
 
 if __name__ == "__main__" :
     app.run(debug = True)
