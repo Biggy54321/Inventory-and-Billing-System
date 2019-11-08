@@ -27,11 +27,11 @@ class ProductManager:
             return 1
 
         # Check if unit price is positive
-        if unit_price < 1:
+        if unit_price <= 0:
             return 2
 
         # Check if unit type is right
-        if unit_type not in ["cash", "card", "wallet"]:
+        if unit_type not in ["kg", "pcs", "ltrs"]:
             return 3
 
         # Check if discount not negative
