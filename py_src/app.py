@@ -42,9 +42,9 @@ def add_product():
         product_id = request.form['product_id'].strip()
         name = request.form['name'].strip()
         description = request.form['description'].strip()
-        unit_price = request.form['unit_price'].strip()
+        unit_price = float((request.form['unit_price'].strip()))
         unit_type = request.form['unit_type'].strip()
-        current_discount = request.form['current_discount'].strip()
+        current_discount = float(request.form['current_discount'].strip())
         ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount)
         return redirect('../InventoryManager')
     else:
