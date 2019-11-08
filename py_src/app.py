@@ -199,5 +199,35 @@ def bill_operator_home():
     else:
 	    return render_template('/BillOperator/bill_operator_home.html')
 
+@app.route('/BillOperator/GenerateInvoice', methods = ['GET', 'POST'])
+def generate_invoice():
+    if request.method == 'POST':
+    else:
+        return render_template('/BillOperator/bill_operator_home.html')
+
+@app.route('/BillOperator/UpdateCgstGst', methods = ['GET', 'POST'])
+def update_gst_cgst():
+    if request.method == 'POST':
+    else:
+        return render_template('/BillOperator/bill_operator_home.html')
+
+@app.route('/BillOperator/AdditionalDiscount', methods = ['GET', 'POST'])
+def additional_discount():
+    if request.method == 'POST':
+    else:
+        return render_template('/BillOperator/bill_operator_home.html')
+
+@app.route('/BillOperator/ViewInvoice', methods = ['GET', 'POST'])
+def view_invoice_details():
+    if request.method == 'POST':
+    else:
+        return render_template('/BillOperator/bill_operator_home.html')
+
+@app.route('/BillOperator/DateWiseInvoice', methods = ['GET', 'POST'])
+def date_wise_invoice():
+    if request.method == 'POST':
+    else:
+        return render_template('/BillOperator/bill_operator_home.html')
+
 if __name__ == "__main__" :
     app.run(debug = True)
