@@ -21,19 +21,23 @@ class CounterManager:
     # @retval 4 Quantity not sufficient in inventory
     @staticmethod
     def __add_counter_to_token(pysql, token_id, product_id, quantity):
+        # Get the token assignment status
+        token_assigned = TokenManager._TokenManager__is_token_assigned(pysql, token_id)
+        # Get the product existence status
+        has_product = InventoryManager._InventoryManager__inventory_has_product(pysql, product_id)
+        # Get the product quantity from the inventory
+        displayed_quantity = InventoryManager._InventoryManager__get_displayed_quantity(pysql, product_id)
+
         # Check if token is assigned
-        if not TokenManager._TokenManager__is_token_assigned(pysql, token_id):
+        if not token_assigned:
             return 1
 
         # Check if quantity is non zero and positive
         if quantity <= 0:
             return 2
 
-        # Get the displayed quantity of the product
-        displayed_quantity = InventoryManager._InventoryManager__get_displayed_quantity(pysql, product_id)
-
-        # Check if product exists
-        if not displayed_quantity:
+        # Get the product existence status
+        if not has_product:
             return 3
 
         # Check if quantity is sufficient
@@ -83,19 +87,21 @@ class CounterManager:
     # @retval 3 Quantity not sufficient
     @staticmethod
     def __add_inventory_to_counter(pysql, product_id, quantity):
-        # Get the stored quantity
+        # Get the product existence status
+        has_product = InventoryManager._InventoryManager__inventory_has_product(pysql, product_id)
+        # Get the product quantity from the inventory
         stored_quantity = InventoryManager._InventoryManager__get_stored_quantity(pysql, product_id)
 
-        # Check if quantity is negative
+        # Check if quantity is non zero and positive
         if quantity <= 0:
             return 1
 
-        # Check if product exists
-        if not stored_quantity:
+        # Get the product existence status
+        if not has_product:
             return 2
 
-        # Check if stored quantity is sufficient
-        if stored_quantity < quantity:
+        # Check if quantity is sufficient
+        if displayed_quantity < quantity:
             return 3
 
         # Remove from inventory

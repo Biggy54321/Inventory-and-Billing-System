@@ -35,8 +35,10 @@ class OrderManager:
 
         # Check for each product id and quantity
         for product_id, quantity in products_quantities:
+            # Get the product existence status
+            product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
             # If product not exists
-            if not ProductManager._ProductManager__is_product_id_used(pysql, product_id):
+            if not product_exists:
                 return 1
             # If quantity not positive
             if quantity <= 0:

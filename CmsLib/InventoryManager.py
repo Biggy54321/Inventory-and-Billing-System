@@ -1,6 +1,3 @@
-# Import the required libraries
-from CmsLib.ProductManager import *
-
 # This variable stores the next TransactionID integer
 next_transaction_id = None
 # This variable indicates whether the next_transaction_id has been initialized
@@ -69,6 +66,24 @@ class InventoryManager:
 
         return is_below
 
+    # @brief This method checks if the given product exists in the inventory
+    # @param pysql PySql object
+    # @param product_id ProductID (string)
+    # @retval 0 Product does not exists
+    # @retval 1 Product does exists
+    @staticmethod
+    def __inventory_has_product(pysql, product_id):
+        # Check if product id exists in the inventory
+        sql_stmt = "SELECT COUNT(*) \
+                    FROM `Inventory` \
+                    WHERE `ProductID` = %s"
+        pysql.run(sql_stmt, (product_id, ))
+
+        # Get the result status
+        has_product = pysql.scalar_result
+
+        return has_product
+
     # @brief This method updates the threshold value of the specified product
     # @param pysql PySql object
     # @param product_id ProductID (string)
@@ -78,16 +93,15 @@ class InventoryManager:
     # @retval 2 Product not found
     @staticmethod
     def __update_threshold(pysql, product_id, threshold):
+        # Get the product existence status
+        has_product = InventoryManager._InventoryManager__inventory_has_product(pysql, product_id)
+
         # Check if threshold is negative
         if threshold < 0:
             return 1
 
         # Check if product exists
-        sql_stmt = "SELECT 1 \
-                    FROM `Inventory` \
-                    WHERE `ProductID` = %s"
-        product_present = pysql.scalar_result
-        if not product_present:
+        if not has_product:
             return 2
 
         # Set the value of threshold to the given argument
@@ -108,16 +122,15 @@ class InventoryManager:
     # @retval 2 Product not found
     @staticmethod
     def __sub_product_from_inventory(pysql, product_id, quantity):
+        # Get the product existence status
+        has_product = InventoryManager._InventoryManager__inventory_has_product(pysql, product_id)
+
         # Check if quantity is negative
         if quantity < 0:
             return 1
 
         # Check if product exists
-        sql_stmt = "SELECT 1 \
-                    FROM `Inventory` \
-                    WHERE `ProductID` = %s"
-        product_present = pysql.scalar_result
-        if not product_present:
+        if not has_product:
             return 2
 
         # Subtract the specified quantity of the product
@@ -159,8 +172,11 @@ class InventoryManager:
         if transaction_type not in ["COUNTER_ADD", "COUNTER_SUB", "INVENTORY_TO_COUNTER", "INVENTORY_ADD", "INVENTORY_SUB"]:
             return 1
 
+        # Get the product existence status
+        has_product = InventoryManager._InventoryManager__inventory_has_product(pysql, product_id)
+
         # Check if product exists
-        if not ProductManager._Product_Manager__is_product_id_used(pysql, product_id):
+        if not has_product:
             return 2
 
         # Check if quantity is positive
@@ -266,6 +282,14 @@ class InventoryManager:
         return pysql.run_transaction(InventoryManager.__is_below_threshold,
                                      product_id,
                                      commit = False)
+
+    # @ref __inventory_has_product
+    @staticmethod
+    def inventory_has_product(pysql, product_id):
+        return pysql.run_transaction(InventoryManager.__inventory_has_product,
+                                     product_id,
+                                     commit = False)
+
 
     # @ref __update_threshold
     @staticmethod

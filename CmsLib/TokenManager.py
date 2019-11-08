@@ -5,7 +5,7 @@ class TokenManager:
 
     # @brief This method adds a token to the list of tokens with default state
     # @param PySql object
-    # @retval 0 New token added at appropriate place
+    # @retval token_id TokenID of the newly added token
     # @retval 1 New token cannot be added
     @staticmethod
     def __add_token(pysql):
@@ -27,12 +27,15 @@ class TokenManager:
         if token_i >= 100:
             return 1
 
+        # Create the token id
+        token_id = "TOK-" + format(token_i, "02d")
+
         # Add the token with number 'i'
         sql_stmt = "INSERT INTO `Tokens` (`TokenID`) \
                     VALUES (%s)"
-        pysql.run(sql_stmt, ("TOK-" + format(token_i, "02d"), ))
+        pysql.run(sql_stmt, (token_id, ))
 
-        return 0
+        return token_id
 
     # @brief This method removes a token from the list of tokens which
     #        is in default state only
@@ -41,19 +44,23 @@ class TokenManager:
     # @retval 0 Token removed successfully
     # @retval 1 Token has products
     # @retval 2 Token is already assigned
+    # @retval 3 Token not found
     @staticmethod
     def __remove_token(pysql, token_id):
-        # Get the token details
-        token_details = TokenManager._TokenManager__get_token_details(pysql, token_id)
+        # Get the token product status
+        has_products = TokenManager._TokenManager__token_has_products(pysql, token_id)
         # Get the assignment status of token
         is_assigned = TokenManager._TokenManager__is_token_assigned(pysql, token_id)
 
-        # If token details are not null
-        if token_details:
+        # If token has products
+        if has_products:
             return 1
         # If token is already assigned
         if is_assigned:
             return 2
+        # Check if token exists
+        if is_assigned == None:
+            return 3
 
         # Remove the token
         sql_stmt = "DELETE \
@@ -92,6 +99,40 @@ class TokenManager:
         # Return the token found
         return token_id
 
+    # @brief This method puts the token back to the default state
+    #        only if the token has no linked products and is assigned
+    # @param pysql PySql object
+    # @param token_id TokenID (string)
+    # @retval 0 Token returned successfully
+    # @retval 1 Token has products
+    # @retval 2 Token is already not assigned
+    # @retval 3 Token not found
+    @staticmethod
+    def __put_token(pysql, token_id):
+        # Get the token product status
+        has_products = TokenManager._TokenManager__token_has_products(pysql, token_id)
+        # Get the assignment status of token
+        is_assigned = TokenManager._TokenManager__is_token_assigned(pysql, token_id)
+
+        # If token has products
+        if has_products:
+            return 1
+        # If token is already not assigned
+        if is_assigned == 0:
+            return 2
+        # If token is not existing
+        if is_assigned == None:
+            return 3
+
+        # Make the assigned status false and make the invoice id null
+        sql_stmt = "UPDATE `Tokens` \
+                    SET `Assigned?` = false, \
+                        `InvoiceID` = NULL \
+                    WHERE `TokenID` = %s"
+        pysql.run(sql_stmt, (token_id, ))
+
+        return 0
+
     # @brief This method checks if the given token is assigned
     # @param pysql PySql object
     # @param token_id TokenID (string)
@@ -111,6 +152,23 @@ class TokenManager:
 
         return is_assigned
 
+    # @brief This method checks if the given token is assigned
+    # @param pysql PySql object
+    # @param token_id TokenID (string)
+    # @retval Number of products linked with the token
+    @staticmethod
+    def __token_has_products(pysql, token_id):
+        # Get the product status
+        sql_stmt = "SELECT COUNT(*) \
+                    FROM `TokensSelectProducts` \
+                    WHERE `TokenID` = %s"
+        pysql.run(sql_stmt, (token_id, ))
+
+        # Get the result
+        no_of_products = pysql.scalar_result
+
+        return no_of_products
+
     # @brief This method returns the products currently added to the
     #        specified token
     # @param pysql PySql object
@@ -129,36 +187,6 @@ class TokenManager:
 
         return token_details
 
-    # @brief This method puts the token back to the default state
-    #        only if the token has no linked products and is assigned
-    # @param pysql PySql object
-    # @param token_id TokenID (string)
-    # @retval 0 Token returned successfully
-    # @retval 1 Token has products
-    # @retval 2 Token is already not assigned
-    @staticmethod
-    def __put_token(pysql, token_id):
-        # Get the token details
-        token_details = TokenManager._TokenManager__get_token_details(pysql, token_id)
-        # Get the assignment status of token
-        is_assigned = TokenManager._TokenManager__is_token_assigned(pysql, token_id)
-
-        # If token details are not null
-        if token_details:
-            return 1
-        # If token is already not assigned
-        if not is_assigned:
-            return 2
-
-        # Make the assigned status false and make the invoice id null
-        sql_stmt = "UPDATE `Tokens` \
-                    SET `Assigned?` = false, \
-                        `InvoiceID` = NULL \
-                    WHERE `TokenID` = %s"
-        pysql.run(sql_stmt, (token_id, ))
-
-        return 0
-
     # @brief This method returns the all the tokens assignment status
     #        specified token
     # @param pysql PySql object
@@ -175,37 +203,6 @@ class TokenManager:
 
         return token_status
 
-    # @ref __get_token
-    @staticmethod
-    def get_token(pysql):
-        return pysql.run_transaction(TokenManager.__get_token)
-
-    # @ref __is_token_assigned
-    @staticmethod
-    def is_token_assigned(pysql, token_id):
-        return pysql.run_transaction(TokenManager.__is_token_assigned,
-                                     token_id,
-                                     commit = False)
-
-    # @ref __get_token_details
-    @staticmethod
-    def get_token_details(pysql, token_id):
-        return pysql.run_transaction(TokenManager.__get_token_details,
-                                     token_id,
-                                     commit = False)
-
-    # @ref __put_token
-    @staticmethod
-    def put_token(pysql, token_id):
-        return pysql.run_transaction(TokenManager.__put_token,
-                                     token_id)
-
-    # @ref __get_all_tokens_status
-    @staticmethod
-    def get_all_tokens_status(pysql):
-        return pysql.run_transaction(TokenManager.__get_all_tokens_status,
-                                     commit = False)
-
     # @ref __add_token
     @staticmethod
     def add_token(pysql):
@@ -216,3 +213,40 @@ class TokenManager:
     def remove_token(pysql, token_id):
         return pysql.run_transaction(TokenManager.__remove_token,
                                      token_id)
+
+    # @ref __get_token
+    @staticmethod
+    def get_token(pysql):
+        return pysql.run_transaction(TokenManager.__get_token)
+
+    # @ref __put_token
+    @staticmethod
+    def put_token(pysql, token_id):
+        return pysql.run_transaction(TokenManager.__put_token,
+                                     token_id)
+
+    # @ref __is_token_assigned
+    @staticmethod
+    def is_token_assigned(pysql, token_id):
+        return pysql.run_transaction(TokenManager.__is_token_assigned,
+                                     token_id,
+                                     commit = False)
+
+    @staticmethod
+    def token_has_products(pysql, token_id):
+        return pysql.run_transaction(TokenManager.__token_has_products,
+                                     token_id,
+                                     commit = False)
+
+    # @ref __get_all_tokens_status
+    @staticmethod
+    def get_all_tokens_status(pysql):
+        return pysql.run_transaction(TokenManager.__get_all_tokens_status,
+                                     commit = False)
+
+    # @ref __get_token_details
+    @staticmethod
+    def get_token_details(pysql, token_id):
+        return pysql.run_transaction(TokenManager.__get_token_details,
+                                     token_id,
+                                     commit = False)
