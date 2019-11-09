@@ -54,7 +54,7 @@ def inventory_manager_add_product():
         description = request.form['Description'].strip()
         unit_price = float((request.form['UnitPrice'].strip()))
         unit_type = request.form['UnitType'].strip()
-        gst = float(request.form['GST'].strip())
+        gst = float(request.form['SGST'].strip())
         cgst = float(request.form['CGST'].strip())
         current_discount = float(request.form['CurrentDiscount'].strip())
 
@@ -69,7 +69,7 @@ def inventory_manager_add_product():
         error_reasons = ["Product ID already used.",
                          "Unit price not valid.,",
                          "Unit type not valid.",
-                         "GST or CGST not valid",
+                         "SGST or CGST not valid",
                          "Discount not valid."]
         return render_template('InventoryManager/inventory_manager_failure.html', reason=error_reasons[retval - 1])
     else:
@@ -271,7 +271,7 @@ def token_manager_get_token():
     if token_id is None:
         return render_template('/TokenManager/token_manager_failure.html', reason="Token not available")
     else:
-        return render_template('/TokenManager/token_manager_get_token.html', token_id=token_id)
+        return render_template('/TokenManager/token_manager_success.html', result="Token {} assigned".format(token_id))
 
 
 # Return token page
@@ -506,7 +506,7 @@ def additional_discount():
         add_discount = Decimal(request.form['add_discount'])
         add_discount = round(add_discount, 3)
         retval = InvoiceManager.give_additional_discount(pysql, invoice_id, add_discount)
-        
+
         if retval == 0:
             return render_template('/BillDesk/success_add_discount.html')
 

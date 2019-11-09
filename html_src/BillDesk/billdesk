@@ -1,6 +1,5 @@
 Should be able to:
 1. Generate a new invoice(should handle null tokens)
-2. Update gst/cgst
-3. Give additional discout to a particular invoice_id
-4. Display invoice details for the given invoice_id
-5. Display Date wise invoice
+2. Give additional discout to a particular invoice_id
+3. Display invoice details for the given invoice_id
+4. Display Date wise invoice
