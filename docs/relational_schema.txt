@@ -6,20 +6,19 @@ Tokens(TokenID,
        Assigned?,
        InvoiceID);              # relationship 'In' in this schema itself
 
-
 Products(ProductID,
          ---------
          Name,
          Description,
          UnitPrice,
          UnitType,
+         GST,
+         CGST,
          CurrentDiscount);
 
 Invoices(Invoice_ID,
          ----------
          InvoiceDate,
-         GST,
-         CGST,
          DiscountGiven,
          PaymentMode);
 
@@ -61,4 +60,6 @@ ProductsInInvoices(InvoiceID, # many-to-many relationship
                    Name,
                    Quantity,
                    UnitPrice,
+                   GST,
+                   CGST,
                    Discount);
