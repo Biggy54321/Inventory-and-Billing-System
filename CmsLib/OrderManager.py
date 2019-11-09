@@ -202,7 +202,7 @@ class OrderManager:
                     FROM `Orders` \
                     WHERE `OrderID` = %s"
         pysql.run(sql_stmt, (order_id, ))
-        order_status = pysql.result[0]
+        order_status = pysql.first_result
 
         # Get the products in the given order
         sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitType` \
