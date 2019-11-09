@@ -167,7 +167,11 @@ def inventory_manager_cancel_order():
 def inventory_manager_view_inventory():
     # Get the inventory details
     inventory = InventoryManager.get_inventory_details(pysql)
-    return render_template('/InventoryManager/inventory_manager_view_inventory.html', inventory = inventory)
+    # If no items
+    if not inventory:
+        return render_template('/InventoryManager/inventory_manager_alert.html', result="Inventory is empty")
+    else:
+        return render_template('/InventoryManager/inventory_manager_view_inventory.html', inventory = inventory)
 
 
 # View products page
@@ -175,6 +179,9 @@ def inventory_manager_view_inventory():
 def inventory_manager_view_products():
     # Get the product details
     products = ProductManager.get_all_products(pysql)
+    # If no products
+    if not products:
+        return render_template('/InventoryManager/inventory_manager_alert.html', result="No Products found")
     return render_template('/InventoryManager/inventory_manager_view_products.html', products=products)
 
 
@@ -202,7 +209,11 @@ def inventory_manager_orders_between_dates():
         from_date, to_date = request.form['FromDate'], request.form['ToDate']
         # Get the order details of those orders
         orders = OrderManager.get_orders_between_date(pysql, from_date, to_date)
-        return render_template('/InventoryManager/inventory_manager_orders_between_dates_result.html', from_date=from_date, to_date=to_date, orders=orders)
+        # If no orders
+        if not orders:
+            return render_template('InventoryManager/inventory_manager_alert.html', result="No orders found")
+        else:
+            return render_template('/InventoryManager/inventory_manager_orders_between_dates_result.html', from_date=from_date, to_date=to_date, orders=orders)
     else:
         return render_template('/InventoryManager/inventory_manager_orders_between_dates.html')
 
@@ -212,6 +223,9 @@ def inventory_manager_orders_between_dates():
 def inventory_manager_transaction_log():
     # Get the transactions
     transactions = InventoryManager.get_transactions(pysql)
+    # If no transactions
+    if not transactions:
+        return render_template('InventoryManager/inventory_manager_alert.html', result="No transactions found")
     return render_template('/InventoryManager/inventory_manager_transaction_log.html', transactions=transactions)
 
 
@@ -228,7 +242,16 @@ def inventory_manager_transactions_of_product_on_date():
         on_date, product_name = request.form['OnDate'], request.form['Name']
         # Get the product id from name
         product_id = ProductManager.get_product_id_from_name(pysql, product_name)
+        # If product not found
+        if not product_id:
+            return render_template('InventoryManager/inventory_manager_failure.html', reason="Product not found")
+
         transactions = InventoryManager.get_transactions_of_product_by_date(pysql, product_id, on_date)
+
+        # If no transactions found
+        if not transactions:
+            return render_template('InventoryManager/inventory_manager_alert.html', result="No transactions found")
+
         return render_template('/InventoryManager/inventory_manager_product_date_transaction_log_result.html', transactions=transactions)
     else:
         return render_template('/InventoryManager/inventory_manager_product_date_transaction_log.html', products=products)
@@ -259,7 +282,11 @@ def token_manager():
 def token_manager_token_statuses():
     # Get the token statuses
     statuses = TokenManager.get_all_tokens_status(pysql)
-    return render_template('/TokenManager/token_manager_token_statuses.html', statuses=statuses)
+    # If no statuses found
+    if not statuses:
+        return render_template('/TokenManager/token_manager_alert.html', result="No tokens found")
+    else:
+        return render_template('/TokenManager/token_manager_token_statuses.html', statuses=statuses)
 
 
 # Get token page
@@ -267,6 +294,7 @@ def token_manager_token_statuses():
 def token_manager_get_token():
     # Get the token from the available tokens
     token_id = TokenManager.get_token(pysql)
+    # If no token found
     if token_id is None:
         return render_template('/TokenManager/token_manager_failure.html', reason="Token not available")
     else:
@@ -303,10 +331,13 @@ def token_manager_get_token_details():
         token_id = request.form['TokenID']
         # Get the token details
         token_details = TokenManager.get_token_details(pysql, token_id)
-        return render_template('/TokenManager/token_manager_get_token_details.html', token_details=token_details)
+
+        if not token_details:
+            return render_template('TokenManager/token_manager_alert.html', result="No products are bagged by this token")
+        else:
+            return render_template('/TokenManager/token_manager_get_token_details.html', token_details=token_details)
     else:
         return render_template('/TokenManager/token_manager_token_id_input.html')
-
 
 # Add token page
 @app.route('/TokenManager/AddToken', methods = ['GET', 'POST'])
@@ -342,7 +373,6 @@ def token_manager_remove_token():
     else:
         return render_template('/TokenManager/token_manager_token_id_input.html')
 
-
 # Counter operator page
 @app.route('/CounterOperator', methods = ['GET', 'POST'])
 def counter_operator():
@@ -371,7 +401,7 @@ def counter_operator_add_products_to_token():
 
         # Check if quantity is specified
         if not quantity:
-            return redirect('/CounterOperator/AddProductsToToken')
+            return redirect('/CounterOperator/counter_operator_alert.html', result="Quantity cannot be empty")
 
         # Convert string to float
         quantity = float(quantity)
@@ -403,7 +433,7 @@ def counter_operator_add_inventory_to_counter():
 
         # Check if quantity is specified
         if not quantity:
-            return redirect('/CounterOperator/Add_Inventory_To_Counter')
+            return redirect('/CounterOperator/counter_operator_alert.html', result="Quantity cannot be empty")
 
         # Convert string to float
         quantity = float(quantity)
