@@ -11,15 +11,17 @@ class ProductManager:
     # @param description Product Description (string)
     # @param unit_price Price per unit (float)
     # @param unit_type Type of units (enum string)
+    # @param sgst SGST
+    # @param cgst CGST
     # @param current_discount Discount in percentage (float)
     # @retval 0 Added product successfully
     # @retval 1 Product id already used
     # @retval 2 Unit price not positive
     # @retval 3 Unit type not valid
-    # @retval 4 GST and CGST not valid
+    # @retval 4 SGST and CGST not valid
     # @retval 5 Current discount not valid
     @staticmethod
-    def __add_product(pysql, product_id, name, description, unit_price, unit_type, gst, cgst, current_discount):
+    def __add_product(pysql, product_id, name, description, unit_price, unit_type, sgst, cgst, current_discount):
         # Get the product existence status
         product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
 
@@ -35,8 +37,8 @@ class ProductManager:
         if unit_type not in ["kg", "pcs", "ltrs"]:
             return 3
 
-        # Check if gst and cgst are correct
-        if 0 > gst or gst > 100:
+        # Check if sgst and cgst are correct
+        if 0 > sgst or sgst > 100:
             return 4
         if 0 > cgst or cgst > 100:
             return 4
@@ -49,11 +51,11 @@ class ProductManager:
         if current_discount:
             sql_stmt = "INSERT INTO `Products` \
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, gst, cgst, current_discount))
+            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, sgst, cgst, current_discount))
         else:
-            sql_stmt = "INSERT INTO `Products` (`ProductID`, `Name`, `Description`, `UnitPrice`, `UnitType`, `GST`, `CGST`) \
+            sql_stmt = "INSERT INTO `Products` (`ProductID`, `Name`, `Description`, `UnitPrice`, `UnitType`, `SGST`, `CGST`) \
                         VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, gst, cgst))
+            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, sgst, cgst))
 
         return 0
 
@@ -136,15 +138,16 @@ class ProductManager:
 
         return 0
 
-    # @brief This method updates the gst and cgst
+    # @brief This method updates the sgst and cgst
     # @param pysql PySql object
     # @param product_id ProductID
-    # @param gst GST percentage
+    # @param sgst SGST percentage
     # @param cgst CGST percentage
     # @retval 0 Updated successfully
     # @retval 1 Product not found
+    # @retval SGST or CGST not valid
     @staticmethod
-    def __update_product_gst_cgst(pysql, product_id, gst, cgst):
+    def __update_product_sgst_cgst(pysql, product_id, sgst, cgst):
         # Get the product existence status
         product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
 
@@ -152,12 +155,18 @@ class ProductManager:
         if not product_exists:
             return 1
 
+        # Check if gst and cgst are correct
+        if 0 > sgst or sgst > 100:
+            return 2
+        if 0 > cgst or cgst > 100:
+            return 2
+
         # Update the gst and cgst fields
         sql_stmt = "UPDATE `Products` \
-                    SET `GST` = %s, \
+                    SET `SGST` = %s, \
                         `CGST` = %s \
                     WHERE `ProductID` = %s"
-        pysql.run(sql_stmt, (gst, cgst, product_id))
+        pysql.run(sql_stmt, (sgst, cgst, product_id))
 
         return 0
 
@@ -214,14 +223,14 @@ class ProductManager:
 
     # @ref __add_product
     @staticmethod
-    def add_product(pysql, product_id, name, description, unit_price, unit_type, gst, cgst, current_discount = None):
+    def add_product(pysql, product_id, name, description, unit_price, unit_type, sgst, cgst, current_discount = None):
         return pysql.run_transaction(ProductManager.__add_product,
                                      product_id,
                                      name,
                                      description,
                                      unit_price,
                                      unit_type,
-                                     gst,
+                                     sgst,
                                      cgst,
                                      current_discount)
 
@@ -248,10 +257,10 @@ class ProductManager:
 
     # @ref __update_product_gst_cgst
     @staticmethod
-    def update_product_gst_cgst(pysql, product_id, gst, cgst):
-        return pysql.run_transaction(ProductManager.__update_product_gst_cgst,
+    def update_product_sgst_cgst(pysql, product_id, sgst, cgst):
+        return pysql.run_transaction(ProductManager.__update_product_sgst_cgst,
                                      product_id,
-                                     gst,
+                                     sgst,
                                      cgst)
 
     # @ref __is_product_id_used

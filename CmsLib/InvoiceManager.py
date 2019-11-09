@@ -71,7 +71,7 @@ class InvoiceManager:
         pysql.run_many(sql_stmt, token_ids)
 
         # Add the invoice product details
-        sql_stmt = "SELECT `ProductID`, `Name`, `SumQuantity`, `UnitPrice`, `GST`, `CGST`, `CurrentDiscount` \
+        sql_stmt = "SELECT `ProductID`, `Name`, `SumQuantity`, `UnitPrice`, `SGST`, `CGST`, `CurrentDiscount` \
                     FROM `Products` JOIN (SELECT `ProductID`, SUM(`Quantity`) AS `SumQuantity` \
                                           FROM `TokensSelectProducts` \
                                           WHERE `TokenID` IN (SELECT `TokenID` \
@@ -139,7 +139,7 @@ class InvoiceManager:
     # @brief This method returns the invoice details for the specified InvoiceID
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
-    # @retval (InvoiceID, InvoiceDate, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, GST, CGST, Discount)
+    # @retval (InvoiceID, InvoiceDate, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, SGST, CGST, Discount)
     @staticmethod
     def __get_invoice_details(pysql, invoice_id):
         # Get the invoice parameters
@@ -150,7 +150,7 @@ class InvoiceManager:
         invoice_parameters = pysql.first_result
 
         # Get the invoice product details
-        sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitPrice`, `GST`, `CGST`, `Discount` \
+        sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitPrice`, `SGST`, `CGST`, `Discount` \
                     FROM `ProductsInInvoices` \
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (invoice_id, ))
@@ -163,11 +163,11 @@ class InvoiceManager:
     #        having their invoice dates on the given date
     # @param pysql PySql object
     # @param date On Date (string of format "YYYY-MM-DD")
-    # @retval (InvoiceID, InvoiceDate, GST, CGST, DiscountGiven, PaymentMode) (list of tuples)
+    # @retval (InvoiceID, InvoiceDate, SGST, CGST, DiscountGiven, PaymentMode) (list of tuples)
     @staticmethod
     def __get_invoices_by_date(pysql, date):
         # Get the invoice parameters on the specified date
-        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `GST`, `CGST`, `DiscountGiven`, `PaymentMode` \
+        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `SGST`, `CGST`, `DiscountGiven`, `PaymentMode` \
                     FROM `Invoices` \
                     WHERE DATE(`InvoiceDate`) = %s"
         pysql.run(sql_stmt, date)
