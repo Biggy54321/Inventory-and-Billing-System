@@ -1,38 +1,41 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Place Order</title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <form action="" method="POST">
-        <table>
-            <thead>
-                <tr>
-                    <th>Product ID</th>
-                    <th>Name</th>
-                    <th>Unit Type</th>
-                    <th>Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in products %}
-                <tr>
-                    {% for d in row %}
-                    <td>
-                        {{ d }}
-                    </td>
-                    {% endfor %}
-                    <td>
-                        <input type = "text" name = "Quantity[]" value = "0">
-                    </td>
-                </tr>
+  <head>
+    <meta charset="utf-8">
+    <title>Place Order</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h2>Enter the quantities of the products to be ordered</h2><br><br>
+    <form action="" method="POST">
+      <table>
+        <thead>
+          <tr>
+            <th>Product ID</th>
+            <th>Name</th>
+            <th>Unit Type</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in products %}
+          <tr>
+            {% for d in row %}
+            <td>
+              {{ d }}
+            </td>
+            {% endfor %}
+            <td>
+              <input type = "text" name = "Quantity[]" value = "0">
+            </td>
+          </tr>
 
-                {% endfor %}
-            </tbody>
-        </table><br><br><br>
-            <input type="submit" name="PlaceOrder" value="Place Order" class = "button"><br>
-        </form>
-    </body>
+          {% endfor %}
+        </tbody>
+      </table><br><br><br>
+      <input type="submit" name="PlaceOrder" value="Place Order" class = "button"><br>
+    </form>
+    <br><br>
+    <a href='/InventoryManager' class="button">Back</a>
+  </body>
 </html>

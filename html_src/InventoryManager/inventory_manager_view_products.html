@@ -1,23 +1,36 @@
-<table  border="1" cellpadding="5" cellspacing="5">
-        <thead>
-            <tr>
-                <th>Product ID</th>
-                <th>Product Name</th>
-                <th>Description</th>
-                <th>Unit Price</th>
-                <th>Unit type</th>
-                <th>GST</th>
-                <th>CGST</th>
-                <th>Current Discount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in products %}
-            <tr>
-                {% for d in row %}
-                <td>{{ d }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Products</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h2>Products available in the market</h2><br><br>
+    <table  border="1" cellpadding="5" cellspacing="5">
+      <thead>
+        <tr>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Description</th>
+          <th>Unit Price</th>
+          <th>Unit type</th>
+          <th>GST</th>
+          <th>CGST</th>
+          <th>Current Discount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in products %}
+        <tr>
+          {% for d in row %}
+          <td>{{ d }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+    <br><br>
+    <a href="/InventoryManager" class="button">Back</a>
+  </body>
+</html>

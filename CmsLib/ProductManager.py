@@ -55,7 +55,7 @@ class ProductManager:
                         VALUES (%s, %s, %s, %s, %s, %s, %s)"
             pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, gst, cgst))
 
-            return 0
+        return 0
 
     # @brief This method updates the discount percentage of the product
     # @param pysql PySql object

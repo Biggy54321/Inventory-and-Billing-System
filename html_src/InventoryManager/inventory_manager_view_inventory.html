@@ -1,22 +1,34 @@
-<table  border="1" cellpadding="5" cellspacing="5">
-    <thead>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Inventory</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h2>Inventory details</h2><br><br>
+    <table  border="1" cellpadding="5" cellspacing="5">
+      <thead>
         <tr>
-            <th>Product ID</th>
-            <th>Product Name</th>
-            <th>Stored Quantity</th>
-            <th>Displayed Quantity</th>
-            <th>Minimum Threshold</th>
-            <th>Unit Type</th>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Stored Quantity</th>
+          <th>Displayed Quantity</th>
+          <th>Minimum Threshold</th>
+          <th>Unit Type</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for row in inventory %}
         <tr>
-            {% for d in row %}
-            <td>{{ d }}</td>
-            {% endfor %}
+          {% for d in row %}
+          <td>{{ d }}</td>
+          {% endfor %}
         </tr>
         {% endfor %}
-    </tbody>
+      </tbody>
+    </table>
+    <br><br>
     <a href="/InventoryManager" class="button">Back</a>
-</table>
+  </body>
+</html>

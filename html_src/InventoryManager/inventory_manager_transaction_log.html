@@ -1,25 +1,37 @@
-<h1>Inventory transactions on {{ date }} : </h1><br><br>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Inventory transactions</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h1>Inventory transactions</h1><br><br>
 
-<table  border="1" cellpadding="5" cellspacing="5">
-        <thead>
-            <tr>
-                <th>Transaction ID</th>
-                <th>Product ID</th>
-                <th>Product Name</th>
-                <th>Transaction Type</th>
-                <th>Quantity</th>
-                <th>Unit Type</th>
-                <th>Time Stamp</th>
+    <table  border="1" cellpadding="5" cellspacing="5">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Transaction Type</th>
+          <th>Quantity</th>
+          <th>Unit Type</th>
+          <th>Time Stamp</th>
 
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in transactions %}
-            <tr>
-                {% for d in row %}
-                <td>{{ d }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in transactions %}
+        <tr>
+          {% for d in row %}
+          <td>{{ d }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+    <br><br>
+    <a href='/InventoryManager' class="button">Back</a>
+  </body>
+</html>

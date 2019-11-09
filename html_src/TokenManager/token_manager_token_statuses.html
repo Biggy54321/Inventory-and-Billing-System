@@ -1,26 +1,30 @@
-<table>
-    <thead>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Token statuses</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h2>Tokens currently in circulation</h2><br><br>
+    <table>
+      <thead>
         <th>Token ID</th>
         <th>Assigned ?</th>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for status in statuses %}
         <tr>
-            {% for d in status %}
-            <td>
-                {{ d }}
-            </td>
-            {% endfor %}
+          {% for d in status %}
+          <td>
+            {{ d }}
+          </td>
+          {% endfor %}
         </tr>
         {% endfor %}
-    </tbody>
-</table>
-<html>
-    <head>
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <br><br>
-        <a href="/TokenManager" class="button">Home</a>
-    </body>
+      </tbody>
+    </table>
+    <br><br>
+    <a href='/TokenManager' class="button">Back</a>
+  </body>
 </html>
