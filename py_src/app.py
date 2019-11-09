@@ -467,13 +467,13 @@ def generate_invoice():
     if request.method == 'POST':
         token_ids = request.form['token_ids']
         token_ids = token_ids.split(',')
-        current_discount = request.form['current_discount']
+        current_discount = float(request.form['current_discount'])
         payment_mode = request.form['payment_mode']
         retval = InvoiceManager.generate_invoice(pysql, token_ids, payment_mode)
         error_reason = ['One of the tokens is not found or not assigned', 'No products to be billed', 'Payment mode incorrect', 
                             'Invoice not found', 'Discount Negative, have some common sense']
         if retval == 1 or retval == 2 or retval == 3:
-            return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reasons[retval])
+            return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reason[retval])
         else:
             invoice_id = retval
             retval = InvoiceManager.give_additional_discount(pysql, invoice_id, current_discount)
