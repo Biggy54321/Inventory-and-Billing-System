@@ -451,8 +451,6 @@ def bill_desk_home():
     if request.method == 'POST':
         if 'generate_invoice' in request.form:
             return redirect('BillDesk/GenerateInvoice')
-        elif 'update_gst_cgst' in request.form:
-            return redirect('BillDesk/UpdateCgstGst')
         elif 'additional_discount' in request.form:
             return redirect('BillDesk/AdditionalDiscount')
         elif 'view_invoice_details' in request.form:
@@ -466,9 +464,22 @@ def bill_desk_home():
 @app.route('/BillDesk/GenerateInvoice', methods=['GET', 'POST'])
 def generate_invoice():
     if request.method == 'POST':
-        print("Yes")
+        token_ids = request.form['token_ids']
+        token_ids = token_ids.split(',')
+        payment_mode = request.form['payment_mode']
+        retval = InvoiceManager.generate_invoice(pysql, token_ids, payment_mode)
+        error_reason = ['One of the tokens is not found or not assigned', 'No products to be billed', 'Payment mode incorrect']
+        if retval == 1 or retval == 2 or retval == 3:
+            return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reasons[retval])
+        else:
+            invoice_id = retval
+            invoice_details, products = InvoiceManager.get_invoice_details(pysql, invoice_id)
     else:
-        return render_template('/BillDesk/generate_invoice_home.html')
+        return render_template('/BillDesk/bill_desk_generate_invoice_home.html')
+
+@app.route('/BillDesk/PrintInvoice', methods=['GET', 'POST'])
+def print_invoice():
+    
 
 @app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS Products (
        `Description`     VARCHAR(64),
        `UnitPrice`       NUMERIC(9, 3) UNSIGNED,
        `UnitType`        ENUM ("kg", "pcs", "ltrs"),
-       `GST`             NUMERIC(4, 2) UNSIGNED,
+       `SGST`             NUMERIC(4, 2) UNSIGNED,
        `CGST`            NUMERIC(4, 2) UNSIGNED,
        `CurrentDiscount` NUMERIC(4, 2) UNSIGNED DEFAULT 0,
        CONSTRAINT `Products_PK_FMT` CHECK (ProductID REGEXP "^[A-Z]{3}-[0-9]{2}$"),
