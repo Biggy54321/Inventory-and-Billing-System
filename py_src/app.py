@@ -443,80 +443,63 @@ def counter_operator_add_token_to_counter():
         return render_template('/CounterOperator/counter_operator_add_token_to_counter.html')
 
 
-@app.route('/BillOperator', methods=['GET', 'POST'])
-def bill_operator_home():
+@app.route('/BillDesk', methods=['GET', 'POST'])
+def bill_desk_home():
     if request.method == 'POST':
         if 'generate_invoice' in request.form:
-            return redirect('BillOperator/GenerateInvoice')
+            return redirect('BillDesk/GenerateInvoice')
         elif 'update_gst_cgst' in request.form:
-            return redirect('BillOperator/UpdateCgstGst')
+            return redirect('BillDesk/UpdateCgstGst')
         elif 'additional_discount' in request.form:
-            return redirect('BillOperator/AdditionalDiscount')
+            return redirect('BillDesk/AdditionalDiscount')
         elif 'view_invoice_details' in request.form:
-            return redirect('BillOperator/ViewInvoice')
+            return redirect('BillDesk/ViewInvoice')
         elif 'date_wise_invoice' in request.form:
-            return redirect('BillOperator/DateWiseInvoice')
+            return redirect('BillDesk/DateWiseInvoice')
     else:
-        return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillDesk/bill_desk_home.html')
 
 
-@app.route('/BillOperator/GenerateInvoice', methods=['GET', 'POST'])
+@app.route('/BillDesk/GenerateInvoice', methods=['GET', 'POST'])
 def generate_invoice():
     if request.method == 'POST':
         print("Yes")
     else:
-        return render_template('/BillOperator/generate_invoice_home.html')
+        return render_template('/BillDesk/generate_invoice_home.html')
 
-
-@app.route('/BillOperator/UpdateCgstGst', methods=['GET', 'POST'])
-def update_gst_cgst():
-    if request.method == 'POST':
-        new_gst = Decimal(request.form['new_gst'])
-        new_cgst = Decimal(request.form['new_cgst'])
-        new_gst = round(new_gst, 2)
-        new_cgst = round(new_cgst, 2)
-        retval = InvoiceManager.update_gst_cgst(pysql, new_gst, new_cgst)
-        if retval == 0:
-            return render_template('/BillOperator/success_gst_cgst_updated.html')
-        elif retval == 1:
-            return render_template('/BillOperator/failure_updated_gst.html', reason="GST & CGST should be less than 100 and greater than 0")
-    else:
-        return render_template('/BillOperator/update_gst.html')
-
-
-@app.route('/BillOperator/AdditionalDiscount', methods=['GET', 'POST'])
+@app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():
     if request.method == 'POST':
         invoice_id = request.form['invoice_id']
         add_discount = Decimal(request.form['add_discount'])
         add_discount = round(add_discount, 3)
         retval = InvoiceManager.give_additional_discount(pysql, invoice_id, add_discount)
+        
         if retval == 0:
-            return render_template('/BillOperator/success_add_discount.html')
-        elif retval == 1:
-            return render_template('/BillOperator/failure_add_discount.html',
-                                   reason="This Invoice-ID does not exist")
-        elif retval == 2:
-            return render_template('/BillOperator/failure_add_discount.html',
-                                   reason="The discount given is negative")
+            return render_template('/BillDesk/success_add_discount.html')
+
+        error_reasons = ['This Invoice-ID does not exist', 'The discount given is negative']
+
+        return render_template('/BillDesk/bill_desk_failure_add_discount.html', reason = error_reasons[retval])
+
     else:
-        return render_template('/BillOperator/additional_discount.html')
+        return render_template('/BillDesk/bill_desk_additional_discount.html')
 
 
-@app.route('/BillOperator/ViewInvoice', methods=['GET', 'POST'])
+@app.route('/BillDesk/ViewInvoice', methods=['GET', 'POST'])
 def view_invoice_details():
     if request.method == 'POST':
         invoice_id = request.form['invoice_id']
     else:
-        return render_template('/BillOperator/view_invoice_details_home.html')
+        return render_template('/BillDesk/view_invoice_details_home.html')
 
 
-@app.route('/BillOperator/DateWiseInvoice', methods=['GET', 'POST'])
+@app.route('/BillDesk/DateWiseInvoice', methods=['GET', 'POST'])
 def date_wise_invoice():
     if request.method == 'POST':
         print("Yes")
     else:
-        return render_template('/BillOperator/date_wise_invoice_home.html')
+        return render_template('/BillDesk/date_wise_invoice_home.html')
 
 if __name__ == "__main__" :
     #serve(app, port = 5000, host = '0.0.0.0')
