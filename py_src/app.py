@@ -53,10 +53,12 @@ def inventory_manager_add_product():
         description = request.form['Description'].strip()
         unit_price = float((request.form['UnitPrice'].strip()))
         unit_type = request.form['UnitType'].strip()
+        gst = float(request.form['GST'].strip())
+        cgst = float(request.form['CGST'].strip())
         current_discount = float(request.form['CurrentDiscount'].strip())
 
         # Add the product
-        retval = ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount)
+        retval = ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, gst, cgst, current_discount)
 
         # Check for errors
         if retval == 0:
@@ -65,8 +67,9 @@ def inventory_manager_add_product():
         error_reasons = ["Product ID already used.",
                          "Unit price not valid.,",
                          "Unit type not valid.",
+                         "GST or CGST not valid",
                          "Discount not valid."]
-        return redirect('InventoryManager/inventory_manager_add_product_failure.html', reason=error_reasons[retval - 1])
+        return render_template('InventoryManager/inventory_manager_add_product_failure.html', reason=error_reasons[retval - 1])
     else:
         return render_template('InventoryManager/inventory_manager_add_product.html')
 

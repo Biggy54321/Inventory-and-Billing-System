@@ -71,20 +71,20 @@ class InvoiceManager:
         pysql.run_many(sql_stmt, token_ids)
 
         # Add the invoice product details
-        sql_stmt = "SELECT `ProductID`, `Name`, `SumQuantity`, `UnitPrice`, `CurrentDiscount` \
-                    FROM Products JOIN (SELECT `ProductID`, SUM(`Quantity`) AS `SumQuantity` \
-                                        FROM `TokensSelectProducts` \
-                                        WHERE `TokenID` IN (SELECT `TokenID` \
-                                                            FROM `Tokens` \
-                                                            WHERE `InvoiceID` = %s) \
-                                        GROUP BY `ProductID`) AS `ProductsQuantities` \
-                                  USING (`ProductID`)"
+        sql_stmt = "SELECT `ProductID`, `Name`, `SumQuantity`, `UnitPrice`, `GST`, `CGST`, `CurrentDiscount` \
+                    FROM `Products` JOIN (SELECT `ProductID`, SUM(`Quantity`) AS `SumQuantity` \
+                                          FROM `TokensSelectProducts` \
+                                          WHERE `TokenID` IN (SELECT `TokenID` \
+                                                              FROM `Tokens` \
+                                                              WHERE `InvoiceID` = %s) \
+                                          GROUP BY `ProductID`) AS `ProductsQuantities` \
+                                    USING (`ProductID`)"
         pysql.run(sql_stmt, (invoice_id, ))
         invoice_details = pysql.result
 
         # Add these product details with the corresponding invoice
         sql_stmt = "INSERT INTO `ProductsInInvoices` \
-                    VALUES ('{}', %s, %s, %s, %s, %s)".format(invoice_id)
+                    VALUES ('{}', %s, %s, %s, %s, %s, %s, %s)".format(invoice_id)
         pysql.run_many(sql_stmt, invoice_details)
 
         # Make the assigned status false and make the invoice id null
@@ -104,31 +104,6 @@ class InvoiceManager:
 
         # Return the invoice id
         return invoice_id
-
-    # @brief This method updates the default values of GST and CGST
-    # @param pysql PySql object
-    # @param gst New value of GST in percentage (float)
-    # @param cgst New value of CGST in percentage (float)
-    # @retval 0 Updated successfully
-    # @retval 1 Input incorrect
-    @staticmethod
-    def __update_gst_cgst(pysql, gst, cgst):
-        # Check the inputs
-        if not 0 <= gst <= 100:
-            return 1
-        if not 0 <= cgst <= 100:
-            return 1
-
-        # Update GST
-        sql_stmt = "ALTER TABLE `Invoices` \
-                    ALTER `GST` SET DEFAULT %s"
-        pysql.run(sql_stmt, (gst, ))
-        # Update CGST
-        sql_stmt = "ALTER TABLE `Invoices` \
-                    ALTER `CGST` SET DEFAULT %s"
-        pysql.run(sql_stmt, (cgst, ))
-
-        return 0
 
     # @brief This method updates the discount for a particular invoice
     # @param pysql PySql object
@@ -208,13 +183,6 @@ class InvoiceManager:
         return pysql.run_transaction(InvoiceManager.__generate_invoice,
                                      token_ids,
                                      payment_mode)
-
-    # @ref __update_gst_cgst
-    @staticmethod
-    def update_gst_cgst(pysql, gst, cgst):
-        return pysql.run_transaction(InvoiceManager.__update_gst_cgst,
-                                     gst,
-                                     cgst)
 
     # @ref __give_additional_discount
     @staticmethod
