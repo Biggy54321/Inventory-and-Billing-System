@@ -5,6 +5,7 @@ from decimal import Decimal
 #from waitress import serve
 sys.path.append('../')
 from CmsLib import *
+import pdfkit
 
 # Create the flask object for server side programming
 app = Flask(__name__ ,
@@ -466,19 +467,36 @@ def generate_invoice():
     if request.method == 'POST':
         token_ids = request.form['token_ids']
         token_ids = token_ids.split(',')
+        current_discount = request.form['current_discount']
         payment_mode = request.form['payment_mode']
         retval = InvoiceManager.generate_invoice(pysql, token_ids, payment_mode)
-        error_reason = ['One of the tokens is not found or not assigned', 'No products to be billed', 'Payment mode incorrect']
+        error_reason = ['One of the tokens is not found or not assigned', 'No products to be billed', 'Payment mode incorrect', 
+                            'Invoice not found', 'Discount Negative, have some common sense']
         if retval == 1 or retval == 2 or retval == 3:
             return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reasons[retval])
         else:
             invoice_id = retval
-            invoice_details, products = InvoiceManager.get_invoice_details(pysql, invoice_id)
+            retval = InvoiceManager.give_additional_discount(pysql, invoice_id, current_discount)
+            if retval == 1 or retval == 2:
+                return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reason[retval + 3])
+            else:
+                invoice_details, products_details = InvoiceManager.get_invoice_details(pysql, invoice_id)
+                products = []
+                sgst = 0
+                cgst = 0
+                for product in products_details:
+                    products.append([product[0], product[3], product[1] - product[2], product[4] + product[5], ((product[1] - product[2]) * product[3]) * product[5], ((product[1] - product[2]) * product[3]) * product[4], (product[1] - product[2]) * product[3]])
+                    sgst += ((product[1] - product[2]) * product[3]) * product[4]
+                    cgst += ((product[1] - product[2]) * product[3]) * product[5]
+                    total_amount += (product[1] - product[2]) * product[3]
+                total_amount_with_discount = total_amount - invoice_details[2]
+                return render_template('/BillDesk/bill_desk_generate_invoice_success.html', details = invoice_details, products = products, sgst = sgst, cgst = cgst, total_amount = total_amount, total_amount_with_discount = total_amount_with_discount)
     else:
         return render_template('/BillDesk/bill_desk_generate_invoice_home.html')
 
 @app.route('/BillDesk/PrintInvoice', methods=['GET', 'POST'])
 def print_invoice():
+    pdfkit.from_url('/127.0.0.1:5000/BillDesk/GenerateInvoice', '../Invoices/current_invoice.pdf')
     
 
 @app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
