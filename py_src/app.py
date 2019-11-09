@@ -270,7 +270,7 @@ def token_manager_get_token():
     if token_id is None:
         return render_template('/TokenManager/token_manager_failure.html', reason="Token not available")
     else:
-        return render_template('/TokenManager/token_manager_get_token.html', token_id=token_id)
+        return render_template('/TokenManager/token_manager_success.html', result="Token {} assigned".format(token_id))
 
 
 # Return token page
@@ -479,7 +479,7 @@ def generate_invoice():
 
 @app.route('/BillDesk/PrintInvoice', methods=['GET', 'POST'])
 def print_invoice():
-    
+    pass
 
 @app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():
@@ -488,7 +488,7 @@ def additional_discount():
         add_discount = Decimal(request.form['add_discount'])
         add_discount = round(add_discount, 3)
         retval = InvoiceManager.give_additional_discount(pysql, invoice_id, add_discount)
-        
+
         if retval == 0:
             return render_template('/BillDesk/success_add_discount.html')
 
