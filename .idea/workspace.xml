@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="99893139-c64e-4726-b831-ff1a8a35e087" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/html_src/BillOperator/additional_discount.html" beforeDir="false" afterPath="$PROJECT_DIR$/html_src/BillOperator/additional_discount.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/py_src/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/py_src/app.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/py_src/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="527">
-              <caret line="488" column="23" selection-start-line="488" selection-start-column="23" selection-end-line="488" selection-end-column="23" />
+            <state relative-caret-position="459">
+              <caret line="478" column="77" lean-forward="true" selection-start-line="478" selection-start-column="77" selection-end-line="478" selection-end-column="77" />
               <folding>
                 <element signature="e#32#91#0" expanded="true" />
               </folding>
@@ -26,45 +25,11 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/html_src/BillOperator/failure_add_discount.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="14" column="7" lean-forward="true" selection-start-line="14" selection-start-column="7" selection-end-line="14" selection-end-column="7" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/html_src/BillOperator/success_add_discount.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="11" column="7" lean-forward="true" selection-start-line="11" selection-start-column="7" selection-end-line="11" selection-end-column="7" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/html_src/BillOperator/additional_discount.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="13" column="16" lean-forward="true" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="16" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/html_src/BillOperator/update_gst.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" selection-start-line="9" selection-start-column="12" selection-end-line="12" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CmsLib/InvoiceManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2244" />
+            <state relative-caret-position="-1564">
+              <caret line="43" column="40" lean-forward="true" selection-start-line="43" selection-start-column="40" selection-end-line="43" selection-end-column="40" />
+            </state>
           </provider>
         </entry>
       </file>
@@ -206,8 +171,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="64" y="-4" width="1857" height="1085" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -218,7 +184,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.3058104" />
+      <window_info anchor="bottom" id="Terminal" order="8" visible="true" weight="0.3058104" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.32925585" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -302,11 +268,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CmsLib/InvoiceManager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2244" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/html_src/BillOperator/success_add_discount.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="187">
@@ -341,10 +302,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/CmsLib/InvoiceManager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1564">
+          <caret line="43" column="40" lean-forward="true" selection-start-line="43" selection-start-column="40" selection-end-line="43" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/py_src/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="527">
-          <caret line="488" column="23" selection-start-line="488" selection-start-column="23" selection-end-line="488" selection-end-column="23" />
+        <state relative-caret-position="459">
+          <caret line="478" column="77" lean-forward="true" selection-start-line="478" selection-start-column="77" selection-end-line="478" selection-end-column="77" />
           <folding>
             <element signature="e#32#91#0" expanded="true" />
           </folding>

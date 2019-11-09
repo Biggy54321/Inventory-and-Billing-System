@@ -474,7 +474,7 @@ def additional_discount():
         invoice_id = request.form['invoice_id']
         add_discount = Decimal(request.form['add_discount'])
         add_discount = round(add_discount, 3)
-        retval = InvoiceManager.update_gst_cgst(pysql, invoice_id, add_discount)
+        retval = InvoiceManager.give_additional_discount(pysql, invoice_id, add_discount)
         if retval == 0:
             return render_template('/BillOperator/success_add_discount.html')
         elif retval == 1:
