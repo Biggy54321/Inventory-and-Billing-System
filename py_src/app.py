@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 import sys
-sys.path += ['../']
+from decimal import Decimal
+sys.path.append('../')
 from CmsLib import *
 
 app = Flask(__name__ , template_folder = '../html_src/', static_folder = '../html_src/')
@@ -282,9 +283,9 @@ def add_token_to_counter():
     else:
         return render_template('/CounterManager/add_token_to_counter.html')
 
-@app.route('/BillOperator', methods = ['GET', 'POST'])
+@app.route('/BillOperator', methods=['GET', 'POST'])
 def bill_operator_home():
-    if request.method == 'POST' :
+    if request.method == 'POST':
         if 'generate_invoice' in request.form:
             return redirect('BillOperator/GenerateInvoice')
         elif 'update_gst_cgst' in request.form:
@@ -296,37 +297,52 @@ def bill_operator_home():
         elif 'date_wise_invoice' in request.form:
             return redirect('BillOperator/DateWiseInvoice')
     else:
-	    return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/bill_operator_home.html')
 
-@app.route('/BillOperator/GenerateInvoice', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/GenerateInvoice', methods=['GET', 'POST'])
 def generate_invoice():
     if request.method == 'POST':
         print("Yes")
     else:
         return render_template('/BillOperator/generate_invoice_home.html')
 
-@app.route('/BillOperator/UpdateCgstGst', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/UpdateCgstGst', methods=['GET', 'POST'])
 def update_gst_cgst():
     if request.method == 'POST':
-        print("Yes")
+        new_gst = Decimal(request.form['new_gst'])
+        new_cgst = Decimal(request.form['new_cgst'])
+        print("Reached here")
+        new_gst = round(new_gst, 2)
+        new_cgst = round(new_cgst, 2)
+        retval = InvoiceManager.update_gst_cgst(pysql, new_gst, new_cgst)
+        print("Retval: ")
+        if retval == 0:
+            return render_template('/BillOperator/success_gst_cgst_updated.html')
+        elif retval == 1:
+            return render_template('/BillOperator/failure_updated_gst.html', reason="GST & CGST should be less than 100 and greater than 0")
     else:
         return render_template('/BillOperator/update_gst.html')
 
-@app.route('/BillOperator/AdditionalDiscount', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():
     if request.method == 'POST':
         print("Yes")
     else:
         return render_template('/BillOperator/additional_discount.html')
 
-@app.route('/BillOperator/ViewInvoice', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/ViewInvoice', methods=['GET', 'POST'])
 def view_invoice_details():
     if request.method == 'POST':
         print("Yes")
     else:
         return render_template('/BillOperator/view_invoice_details_home.html')
 
-@app.route('/BillOperator/DateWiseInvoice', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/DateWiseInvoice', methods=['GET', 'POST'])
 def date_wise_invoice():
     if request.method == 'POST':
         print("Yes")
@@ -334,4 +350,5 @@ def date_wise_invoice():
         return render_template('/BillOperator/date_wise_invoice_home.html')
 
 if __name__ == "__main__" :
-    app.run(debug = True)
+    #serve(app, port = 5000, host = '0.0.0.0')
+    app.run(debug=True)
