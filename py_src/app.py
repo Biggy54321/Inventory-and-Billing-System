@@ -186,14 +186,17 @@ def inventory_manager_order_details():
         order_id = request.form['OrderID'].strip()
         # Get the order details
         order_status, order_details = OrderManager.get_order_details(pysql, order_id)
-        return render_template('/InventoryManager/inventory_manager_order_details_result.html', order_status=order_status, order_details=order_details)
+        if order_status and order_details:
+            return render_template('/InventoryManager/inventory_manager_order_details_result.html', order_status=order_status, order_details=order_details)
+        else:
+            return render_template('InventoryManager/inventory_manager_failure.html', reason="Order ID not found")
     else:
         return render_template('/InventoryManager/inventory_manager_order_details.html')
 
 
 # Orders between dates page
 @app.route('/InventoryManager/OrdersBetweenDates', methods = ['GET', 'POST'])
-def inventory_manager_daily_orders():
+def inventory_manager_orders_between_dates():
     if request.method == 'POST':
         # Get the start and end date
         from_date, to_date = request.form['FromDate'], request.form['ToDate']
