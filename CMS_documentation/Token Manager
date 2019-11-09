@@ -1,39 +1,4 @@
-Used to handle token management
-
-1. get_token(pysql) : 
-
-    - returns the token_id of a non-assigned token from list of tokens
-    - returns None if no tokens exist
-    - prints error if something else erronous occurs
-
-    pysql : PySql object of current database
-
-2. is_token_assigned(pysql, token_id) :
-
-    - checks if given token is assigned or not
-    - returns 1 if assigned
-    - returns 0 if not assigned
-    - prints error if inputs not valid
-
-    pysql : PySql object of current database
-
-    token_id : id of token
-
-3. put_token(pysql, token_id) :
-
-    - makes given token available for use if it is not currently in use
-    - does nothing if token is in use
-    - prints error if error in input values
-
-    pysql : PySql object of current database
-
-    token_id : id of token to be freed
-
-4. get_token_details(pysql, token_id) : 
-
-    - returns list of products and their respective quantities associated with the given token
-    - prints the error if there is error in input values
-
-    pysql : PySql object of current database
-
-    token_id : id of token to be freed
+1. Statuses of all tokens (token_id)
+2. Get a token () returns token_id
+3. Deassign a token (token_id)
+4. Get token details (token_id)

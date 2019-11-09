@@ -109,7 +109,9 @@ class PySql:
 
             # Execute the function
             result = function(self, *args)
-        except:
+        except Exception as e:
+
+            print("************", e)
             # Rollback the changes
             self.rollback()
 

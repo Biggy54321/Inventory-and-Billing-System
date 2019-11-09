@@ -98,7 +98,7 @@ class OrderManager:
     @staticmethod
     def __cancel_order(pysql, order_id):
         # Get the order status
-        is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
+        is_delivered, is_cancelled = OrderManager._OrderManager__get_order_status(pysql, order_id)
 
         # Check if order exists
         if is_delivered and is_cancelled:
@@ -130,7 +130,7 @@ class OrderManager:
     @staticmethod
     def __receive_order(pysql, order_id):
         # Get the order status
-        is_delivered, is_cancelled = OrderManager.get_order_status(pysql, order_id)
+        is_delivered, is_cancelled = OrderManager._OrderManager__get_order_status(pysql, order_id)
 
         # Check if order exists
         if is_delivered and is_cancelled:
@@ -158,7 +158,7 @@ class OrderManager:
         # Insert the products in the inventory if not present by default
         # (set threshold to 10 percent of the order quantity)
         sql_stmt = "INSERT INTO `Inventory` \
-                    (SELECT `ProductID`, `Quantity`, 0.0, Quantity * 0.1 \
+                    (SELECT `ProductID`, `Quantity`, 0.0, `Quantity` * 0.1 \
                      FROM `OrdersOfProducts` \
                      WHERE `OrderID` = %s and `ProductID` NOT IN (SELECT `ProductID` \
                                                                   FROM `Inventory`))"
