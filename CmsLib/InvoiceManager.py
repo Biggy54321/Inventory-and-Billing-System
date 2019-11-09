@@ -139,7 +139,7 @@ class InvoiceManager:
     # @brief This method returns the invoice details for the specified InvoiceID
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
-    # @retval (InvoiceID, InvoiceDate, GST, CGST, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, Discount)
+    # @retval (InvoiceID, InvoiceDate, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, GST, CGST, Discount)
     @staticmethod
     def __get_invoice_details(pysql, invoice_id):
         # Get the invoice parameters
@@ -150,7 +150,7 @@ class InvoiceManager:
         invoice_parameters = pysql.first_result
 
         # Get the invoice product details
-        sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitPrice`, `Discount` \
+        sql_stmt = "SELECT `ProductID`, `Name`, `Quantity`, `UnitPrice`, `GST`, `CGST`, `Discount` \
                     FROM `ProductsInInvoices` \
                     WHERE `InvoiceID` = %s"
         pysql.run(sql_stmt, (invoice_id, ))
