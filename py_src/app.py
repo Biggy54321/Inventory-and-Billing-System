@@ -1,287 +1,431 @@
+# Import the required libraries
 from flask import Flask, render_template, request, redirect
 import sys
 from decimal import Decimal
+#from waitress import serve
 sys.path.append('../')
 from CmsLib import *
 
-app = Flask(__name__ , template_folder = '../html_src/', static_folder = '../html_src/')
+# Create the flask object for server side programming
+app = Flask(__name__ ,
+            template_folder = '../html_src/',
+            static_folder = '../html_src/')
+
+# Create the pysql object for database programming
 pysql = PySql(app, 'db.yaml')
 
+# Index page
 @app.route('/', methods = ['GET', 'POST'])
 def index():
     return render_template('index.html')
 
+# Inventory manager page
 @app.route('/InventoryManager', methods = ['GET', 'POST'])
-def load_inventory_modules():
+def inventory_manager():
     if request.method == 'POST' :
-        if 'add_product' in request.form:
-            return redirect('InventoryManager/AddProduct')
-        elif 'place_order' in request.form:
-            return redirect('InventoryManager/PlaceOrder')
-        elif 'receive_order' in request.form:
-            return redirect('InventoryManager/ReceiveOrder')
-        elif 'cancel_order' in request.form:
-            return redirect('InventoryManager/CancelOrder')
-        elif 'view_inventory' in request.form:
-            return redirect('InventoryManager/ViewInventory')
-        elif 'view_products' in request.form:
-            return redirect('InventoryManager/ViewProducts')
-        elif 'order_details' in request.form:
-            return redirect('InventoryManager/OrderDetails')
-        elif 'daily_orders' in request.form:
-            return redirect('InventoryManager/DailyOrders')
-        elif 'transaction_log' in request.form:
-            return redirect('InventoryManager/TransactionLog')
-        elif 'products_in_inv_transactions' in request.form:
-            return redirect('InventoryManager/ProductsInInvTransactions')
+        # List of options
+        options = ["AddProduct",
+                   "PlaceOrder",
+                   "ReceiveOrder",
+                   "CancelOrder",
+                   "ViewInventory",
+                   "ViewProducts",
+                   "OrderDetails",
+                   "OrdersBetweenDates",
+                   "TransactionLog",
+                   "ProductDateTransactionLog"]
 
-    return render_template('/InventoryManager/inventory_manager_home.html')
+        # Check if any option is asserted
+        for option in options:
+            if option in request.form:
+                return redirect("InventoryManager/" + option)
 
+    return render_template('/InventoryManager/inventory_manager.html')
+
+
+# Add product page
 @app.route('/InventoryManager/AddProduct', methods = ['GET', 'POST'])
-def add_product():
+def inventory_manager_add_product():
     if request.method == 'POST':
-        product_id = request.form['product_id'].strip()
-        name = request.form['name'].strip()
-        description = request.form['description'].strip()
-        unit_price = float((request.form['unit_price'].strip()))
-        unit_type = request.form['unit_type'].strip()
-        current_discount = float(request.form['current_discount'].strip())
-        ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount)
-        return redirect('../InventoryManager')
+        # Get the product details
+        product_id = request.form['ProductID'].strip()
+        name = request.form['Name'].strip()
+        description = request.form['Description'].strip()
+        unit_price = float((request.form['UnitPrice'].strip()))
+        unit_type = request.form['UnitType'].strip()
+        current_discount = float(request.form['CurrentDiscount'].strip())
+
+        # Add the product
+        retval = ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount)
+
+        # Check for errors
+        if retval == 0:
+            return redirect('InventoryManager/inventory_manager_add_product_success.html')
+
+        error_reasons = ["Product ID already used.",
+                         "Unit price not valid.,",
+                         "Unit type not valid.",
+                         "Discount not valid."]
+        return redirect('InventoryManager/inventory_manager_add_product_failure.html', reason=error_reasons[retval - 1])
     else:
-        return render_template('InventoryManager/add_product.html')
+        return render_template('InventoryManager/inventory_manager_add_product.html')
 
+
+# Place order page
 @app.route('/InventoryManager/PlaceOrder', methods = ['GET', 'POST'])
-def place_order():
-    product_ = ProductManager.get_all_products(pysql)
-    product_data = [(each[0], each[1], each[4]) for each in product_]
-    if request.method == 'POST':
-        order_details = list()
-        quantities = request.form.getlist("quantity[]")
-        for i in range(len(product_)):
-            if quantities[i]:
-                quantity = float(quantities[i])
+def inventory_manager_place_order():
+    # Get all products
+    products = ProductManager.get_all_products(pysql)
+    # Get the product ids, names and the unit types
+    products = [(each[0], each[1], each[4]) for each in products]
 
+    if request.method == 'POST':
+        # Order list
+        product_quantities = []
+        # Quantities entered by user
+        quantities = request.form.getlist("Quantity[]")
+        # Get the product ids
+        product_ids = [each[0] for each in products]
+        # Check for each quantity
+        for product_id, quantity in zip(product_ids, quantities):
+            # Check if quantity is not null
+            if quantity:
+                # Convert string to float
+                quantity = float(quantity)
+                # Check if quantity is non zero
                 if quantity:
-                    order_details.append((product_[i][0], quantity))
-        if order_details:
-            order_id = OrderManager.place_order(pysql, order_details)
-            return render_template('/InventoryManager/success_placed.html', order_id = order_id)
+                    product_quantities.append((product_id, quantity))
+
+        # If product quantities are not null
+        if product_quantities:
+            # Place order
+            retval = OrderManager.place_order(pysql, product_quantities)
+
+            # Check for error
+            error_reasons = ["Details of one of the products ordered not found.",
+                             "One of the quantities in the order is not valid"]
+            if retval == 1 or retval == 2:
+                return render_template('/InventoryManager/inventory_manager_place_order_failure.html', reason=error_reasons[retval - 1])
+
+            return render_template('/InventoryManager/inventory_manager_place_order_success.html', order_id = retval)
         else:
             return redirect('/InventoryManager')
     else:
-        return render_template('/InventoryManager/place_order.html', product_data = product_data)
+        return render_template('/InventoryManager/inventory_manager_place_order.html', products=products)
 
+
+# Receive order page
 @app.route('/InventoryManager/ReceiveOrder', methods = ['GET', 'POST'])
-def receive_order():
+def inventory_manager_receive_order():
     if request.method == 'POST':
-        order_id = request.form['order_id']
-        OrderManager.receive_order(pysql, order_id)
-        return redirect('/InventoryManager')
-    else:
-        return render_template('/InventoryManager/receive_order.html')
+        # Get the order id
+        order_id = request.form['OrderID'].strip()
+        # Receive the order
+        retval = OrderManager.receive_order(pysql, order_id)
 
+        # Check for errors
+        if retval == 0:
+            return render_template('/InventoryManager/inventory_manager_receive_order_success.html')
+
+        error_reasons = ["Order ID not found.",
+                         "Order already delivered.",
+                         "Order was previously cancelled."]
+        return render_template('/InventoryManager/inventory_manager_receive_order_failure.html', reason=error_reasons[retval - 1])
+    else:
+        return render_template('/InventoryManager/inventory_manager_receive_order.html')
+
+
+# # Cancel order page
 @app.route('/InventoryManager/CancelOrder', methods = ['GET', 'POST'])
-def cancel_order():
+def inventory_manager_cancel_order():
     if request.method == 'POST':
-        order_id = request.form['order_id'].strip()
-        OrderManager.cancel_order(pysql, order_id)
-        return redirect('/InventoryManager')
-    else:
-        return render_template('/InventoryManager/cancel_order.html')
+        # Get the order id
+        order_id = request.form['OrderID'].strip()
+        # Cancel the order
+        retval = OrderManager.cancel_order(pysql, order_id)
 
+        # Check for error
+        if retval == 0:
+            return render_template('/InventoryManager/inventory_manager_cancel_order_success.html')
+
+        error_reasons = ["Order ID not found.",
+                         "Order already delivered.",
+                         "Order was previously cancelled."]
+        return render_template('/InventoryManager/inventory_manager_cancel_order_failure.html', reason=error_reasons[retval - 1])
+    else:
+        return render_template('/InventoryManager/inventory_manager_cancel_order.html')
+
+
+# View inventory page
 @app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
-def view_inventory():
-    data = InventoryManager.get_inventory_details(pysql)
-    return render_template('/InventoryManager/view_inventory.html', data=data)
+def inventory_manager_view_inventory():
+    # Get the inventory details
+    inventory = InventoryManager.get_inventory_details(pysql)
+    return render_template('/InventoryManager/inventory_manager_view_inventory.html', inventory = inventory)
 
+
+# View products page
 @app.route('/InventoryManager/ViewProducts', methods = ['GET', 'POST'])
-def view_products():
-    data = ProductManager.get_all_products(pysql)
-    return render_template('/InventoryManager/view_products.html', data=data)
-
-@app.route('/InventoryManager/OrderDetails', methods = ['GET', 'POST'])
-def order_details():
-    if request.method == 'POST':
-        order_id = request.form['order_id']
-        order_status, order_details = OrderManager.get_order_details(pysql, order_id)
-        return render_template('/InventoryManager/order_details.html', order_status=order_status, order_details=order_details)
-    else:
-        return render_template('/InventoryManager/order_details_home.html')
-
-@app.route('/InventoryManager/DailyOrders', methods = ['GET', 'POST'])
-def daily_orders():
-    if request.method == 'POST':
-        start_date, end_date = request.form['orders_from_date'], request.form['orders_to_date']
-        order_details = OrderManager.get_orders_between_date(pysql, start_date, end_date)
-        return render_template('/InventoryManager/day_specific_orders.html', order_details=order_details)
-    else:
-        return render_template('/InventoryManager/daily_orders_home.html')
-
-@app.route('/InventoryManager/TransactionLog', methods = ['GET', 'POST'])
-def transaction_log():
-    transaction_details = InventoryManager.get_transactions(pysql)
-    return render_template('/InventoryManager/inventory_transactions_log.html', transaction_details=transaction_details)
-
-@app.route('/InventoryManager/ProductsInInvTransactions', methods = ['GET', 'POST'])
-def transactions_of_product_on_date():
+def inventory_manager_view_products():
+    # Get the product details
     products = ProductManager.get_all_products(pysql)
+    return render_template('/InventoryManager/inventory_manager_view_products.html', products=products)
+
+
+# Order details page
+@app.route('/InventoryManager/OrderDetails', methods = ['GET', 'POST'])
+def inventory_manager_order_details():
+    if request.method == 'POST':
+        # Get the order id
+        order_id = request.form['OrderID'].strip()
+        # Get the order details
+        order_status, order_details = OrderManager.get_order_details(pysql, order_id)
+        return render_template('/InventoryManager/inventory_manager_order_details_result.html', order_status=order_status, order_details=order_details)
+    else:
+        return render_template('/InventoryManager/inventory_manager_order_details.html')
+
+
+# Orders between dates page
+@app.route('/InventoryManager/OrdersBetweenDates', methods = ['GET', 'POST'])
+def inventory_manager_daily_orders():
+    if request.method == 'POST':
+        # Get the start and end date
+        from_date, to_date = request.form['FromDate'], request.form['ToDate']
+        # Get the order details of those orders
+        orders = OrderManager.get_orders_between_date(pysql, from_date, to_date)
+        return render_template('/InventoryManager/inventory_manager_orders_between_dates_result.html', orders=orders)
+    else:
+        return render_template('/InventoryManager/inventory_manager_orders_between_dates.html')
+
+
+# Transaction log page
+@app.route('/InventoryManager/TransactionLog', methods = ['GET', 'POST'])
+def inventory_manager_transaction_log():
+    # Get the transactions
+    transactions = InventoryManager.get_transactions(pysql)
+    return render_template('/InventoryManager/inventory_manager_transaction_log.html', transactions=transactions)
+
+
+# Product date transaction page
+@app.route('/InventoryManager/ProductDateTransactionLog', methods = ['GET', 'POST'])
+def inventory_manager_transactions_of_product_on_date():
+    # Get all products
+    products = ProductManager.get_all_products(pysql)
+    # Get the names of the products only
     products = [each[1] for each in products]
+
     if request.method == 'POST':
-        on_date, product_name = request.form['transactions_on_date'], request.form['product_name']
+        # Get the on date and product name
+        on_date, product_name = request.form['OnDate'], request.form['Name']
+        # Get the product id from name
         product_id = ProductManager.get_product_id_from_name(pysql, product_name)
-        data = InventoryManager.get_transactions_of_product_by_date(pysql, product_id, on_date)
-        return render_template('/InventoryManager/products_in_inv_transactions.html', data=data)
+        transactions = InventoryManager.get_transactions_of_product_by_date(pysql, product_id, on_date)
+        return render_template('/InventoryManager/inventory_manager_product_date_transaction_log_result.html', transactions=transactions)
     else:
-        return render_template('/InventoryManager/products_in_inv_transactions_home.html', products=products)
+        return render_template('/InventoryManager/inventory_manager_product_date_transaction_log.html', products=products)
 
+
+# Token manager page
 @app.route('/TokenManager', methods = ['GET', 'POST'])
-def token_manager_home():
+def token_manager():
     if request.method == 'POST':
-        if 'get_token_statuses' in request.form:
-            return redirect('/TokenManager/Token_Statuses')
-        elif 'get_token' in request.form:
-            return redirect('/TokenManager/Get_Token')
-        elif 'return_token' in request.form:
-            return redirect('/TokenManager/Return_Token')
-        elif 'get_token_details' in request.form:
-            return redirect('/TokenManager/Get_Token_Details')
-        elif 'add_token' in request.form:
-            return redirect('/TokenManager/Add_Token')
-        elif 'remove_token' in request.form:
-            return redirect('/TokenManager/Remove_Token')
+        # Set the options provided
+        options = ["GetTokenStatuses",
+                   "GetToken",
+                   "ReturnToken",
+                   "GetTokenDetails",
+                   "AddToken",
+                   "RemoveToken"]
+
+        # Check if option is asserted
+        for option in options:
+            if option in request.form:
+                return redirect("/TokenManager/" + option)
     else:
-        return render_template('/TokenManager/token_manager_home.html')
+        return render_template('/TokenManager/token_manager.html')
 
-@app.route('/TokenManager/Token_Statuses', methods = ['GET', 'POST'])
-def token_statuses():
+
+# Token statuses page
+@app.route('/TokenManager/GetTokenStatuses', methods = ['GET', 'POST'])
+def token_manager_token_statuses():
+    # Get the token statuses
     statuses = TokenManager.get_all_tokens_status(pysql)
-    return render_template('/TokenManager/token_statuses.html', statuses = statuses)
+    return render_template('/TokenManager/token_manager_token_statuses.html', statuses=statuses)
 
-@app.route('/TokenManager/Get_Token', methods = ['GET', 'POST'])
-def get_token():
+
+# Get token page
+@app.route('/TokenManager/GetToken', methods = ['GET', 'POST'])
+def token_manager_get_token():
+    # Get the token from the available tokens
     token_id = TokenManager.get_token(pysql)
     if token_id is None:
-        return render_template('/TokenManager/get_token_failure.html')
+        return render_template('/TokenManager/token_manager_get_token_failure.html')
     else:
-        return render_template('/TokenManager/get_token.html', token_id = token_id)
+        return render_template('/TokenManager/token_manager_get_token.html', token_id=token_id)
 
-@app.route('/TokenManager/Return_Token', methods = ['GET', 'POST'])
-def return_token():
+
+# Return token page
+@app.route('/TokenManager/ReturnToken', methods = ['GET', 'POST'])
+def token_manager_return_token():
     if request.method == 'POST':
-        token_id = request.form['token_id']
+        # Get the token id
+        token_id = request.form['TokenID']
+        # Return the token
         retval = TokenManager.put_token(pysql, token_id)
+        # Check for errors
         if retval == 0:
-            return render_template('/TokenManager/successfully_returned.html')
-        elif retval == 1:
-            return render_template('/TokenManager/failure_returned.html', reason = "Token has products. Remove them first to continue.")
-        elif retval == 2:
-            return render_template('/TokenManager/failure_returned.html', reason = "Token is not assigned. Please check again and continue")
-        elif retval == 3:
-            return render_template('/TokenManager/failure_returned.html', reason = "Token not found. Please confirm token ID and continue")
-    else:
-        return render_template('/TokenManager/token_home.html')
+            return render_template('/TokenManager/token_manager_return_token_success.html')
 
-@app.route('/TokenManager/Get_Token_Details', methods=['GET', 'POST'])
-def get_token_details():
+        error_reasons = ["Token has products. Remove them first to continue.",
+                         "Token is not assigned. Please check again and continue",
+                         "Token not found. Please confirm token ID and continue"]
+        return render_template('/TokenManager/token_manager_return_token_failure.html', reason=error_reasons[retval - 1])
+    else:
+        return render_template('/TokenManager/token_manager_token_id_input.html')
+
+
+# Get token details page
+@app.route('/TokenManager/GetTokenDetails', methods=['GET', 'POST'])
+def token_manager_get_token_details():
     if request.method == 'POST':
-        token_id = request.form['token_id']
+        # Get the token id
+        token_id = request.form['TokenID']
+        # Get the token details
         token_details = TokenManager.get_token_details(pysql, token_id)
-        return render_template('/TokenManager/get_token_details.html', token_details = token_details)
+        return render_template('/TokenManager/token_manager_get_token_details.html', token_details=token_details)
     else:
-        return render_template('/TokenManager/token_home.html')
+        return render_template('/TokenManager/token_manager_token_id_input.html')
 
-@app.route('/TokenManager/Add_Token', methods = ['GET', 'POST'])
-def add_token():
+
+# Add token page
+@app.route('/TokenManager/AddToken', methods = ['GET', 'POST'])
+def token_manager_add_token():
     new_token_id = TokenManager.add_token(pysql)
     if new_token_id == 1:
-        return render_template('/TokenManager/add_token_failure.html', reason = "New token cannot be added")
+        return render_template('/TokenManager/token_manager_add_token_failure.html', reason="New token cannot be added")
     else:
-        return render_template('/TokenManager/add_token_success.html', token_id=new_token_id)
+        return render_template('/TokenManager/token_manager_add_token_success.html', token_id=new_token_id)
 
-@app.route('/TokenManager/Remove_Token', methods = ['GET', 'POST'])
-def remove_token():
+
+# Remove token page
+@app.route('/TokenManager/RemoveToken', methods = ['GET', 'POST'])
+def token_manager_remove_token():
     if request.method == 'POST':
-        token_id = request.form['token_id']
+        # Get the token id
+        token_id = request.form['TokenID']
+        # Remove the token
         retval = TokenManager.remove_token(pysql, token_id)
+        # Check for errors
         if retval == 0:
-            return render_template('/TokenManager/success_remove_token.html')
-        elif retval == 1:
-            return render_template('/TokenManager/failure_remove_token.html', reason = "Token already has products. Please remove them before proceeding.")
-        elif retval == 2:
-            return render_template('/TokenManager/failure_remove_token.html', reason = "Token is already assigned. Please desassign it to continue.")
-        elif retval == 3:
-            return render_template('/TokenManager/failure_remove_token.html', reason = "Token not found. Please check Token ID and continue")
-    else:
-        return render_template('/TokenManager/token_home.html')
+            return render_template('/TokenManager/token_manager_remove_token_success.html')
 
+        error_reasons = ["Token already has products. Please remove them before proceeding.",
+                         "Token is already assigned. Please desassign it to continue.",
+                         "Token not found. Please check Token ID and continue"]
+        return render_template('/TokenManager/token_manager_remove_token_failure.html', reason=error_reasons[retval - 1])
+    else:
+        return render_template('/TokenManager/token_manager_token_id_input.html')
+
+
+# Counter operator page
 @app.route('/CounterOperator', methods = ['GET', 'POST'])
-def counter_operator_home():
+def counter_operator():
     if request.method == 'POST':
-        if "add_counter_to_token" in request.form:
-            return redirect('/CounterOperator/Add_Products_To_Token')
-        if "add_inventory_to_counter" in request.form:
-            return redirect('/CounterOperator/Add_Inventory_To_Counter')
-        if "add_token_to_counter" in request.form:
-            return redirect('/CounterOperator/Add_Token_To_Counter')
-    else:
-        return render_template('/CounterOperator/counter_operator_home.html')
+        # Get the list of options
+        options = ["AddProductsToToken",
+                   "AddInventoryToCounter",
+                   "AddTokenToCounter"]
 
-@app.route('/CounterOperator/Add_Products_To_Token', methods=['GET', 'POST'])
-def add_products_to_token():
+        # Check if a option is asserted
+        for option in options:
+            if option in request.form:
+                return redirect("/CounterOperator/" + option)
+    else:
+        return render_template('/CounterOperator/counter_operator.html')
+
+
+# Add products from counter to token page
+@app.route('/CounterOperator/AddProductsToToken', methods=['GET', 'POST'])
+def counter_operator_add_products_to_token():
     if request.method == 'POST':
-        token_id = request.form['token_id']
-        product_id = request.form['product_id']
-        quantity = request.form['quantity'].strip()
-        if len(quantity) == 0:
-            return redirect('/CounterOperator/Add_Products_To_Token')
+        # Get the token details and product details
+        token_id = request.form['TokenID'].strip()
+        product_id = request.form['ProductID'].strip()
+        quantity = request.form['Quantity'].strip()
+
+        # Check if quantity is specified
+        if not quantity:
+            return redirect('/CounterOperator/AddProductsToToken')
+
+        # Convert string to float
         quantity = float(quantity)
+
+        # Add product quantity from counter to token
         retval = CounterManager.add_counter_to_token(pysql, token_id, product_id, quantity)
-        if retval == 0:
-            return render_template('/CounterOperator/add_products_to_token_success.html')
-        elif retval == 1:
-            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Token not found or is not assigned")
-        elif retval == 2:
-            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Quantity Negative")
-        elif retval == 3:
-            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Product not found in inventory")
-        elif retval == 4:
-            return render_template('/CounterOperator/failure_product_to_token.html', reason = "Quantity not sufficient in inventory")
-    else:
-        return render_template('/CounterOperator/add_products_to_token.html')
 
-@app.route('/CounterOperator/Add_Inventory_To_Counter', methods=['GET', 'POST'])
-def add_inventory_to_counter():
+        # Check for errors
+        if retval == 0:
+            return render_template('/CounterOperator/counter_operator_add_products_to_token_success.html')
+
+        error_reasons = ["Token not found or is not assigned.",
+                         "Quantity not valid",
+                         "Product not found in inventory",
+                         "Quantity not sufficient in inventory"]
+        return render_template('/CounterOperator/counter_operator_add_products_to_token_failure.html', reason=error_reasons[retval - 1])
+    else:
+        return render_template('/CounterOperator/counter_operator_add_products_to_token.html')
+
+
+# Add products from inventory to counter
+@app.route('/CounterOperator/AddInventoryToCounter', methods=['GET', 'POST'])
+def counter_operator_add_inventory_to_counter():
     if request.method == 'POST':
-        product_id = request.form['product_id']
-        quantity = request.form['quantity'].strip()
-        if len(quantity) == 0:
+        # Get the product and quantity to be transferred
+        product_id = request.form['ProductID'].strip()
+        quantity = request.form['Quantity'].strip()
+
+        # Check if quantity is specified
+        if not quantity:
             return redirect('/CounterOperator/Add_Inventory_To_Counter')
-        quantity = float(quantity)
-        retval = CounterManager.add_inventory_to_counter(pysql, product_id, quantity)
-        if retval == 0:
-            return render_template('/CounterOperator/success_inventory_to_product.html')
-        elif retval == 1:
-            return render_template('/CounterOperator/failure_inventory_to_counter.html', reason = "Quantity Negative")
-        elif retval == 2:
-            return render_template('/CounterOperator/failure_inventory_to_counter.html', reason = "Product not found in inventory")
-        elif retval == 3:
-            return render_template('/CounterOperator/failure_inventory_to_counter.html', reason = "Quantity in warehouse not sufficient")
-    else:
-        return render_template('/CounterOperator/add_inventory_to_counter.html')
 
-@app.route('/CounterOperator/Add_Token_To_Counter', methods=['GET', 'POST'])
-def add_token_to_counter():
-    if request.method == 'POST':
-        token_id = request.form['token_id']
-        product_id = request.form['product_id']
-        retval = CounterManager.add_token_to_counter(pysql, token_id, product_id)
+        # Convert string to float
+        quantity = float(quantity)
+
+        # Add the product quantity from inventory to counter
+        retval = CounterManager.add_inventory_to_counter(pysql, product_id, quantity)
+
+        # Check for errors
         if retval == 0:
-            return render_template('/CounterOperator/success_token_to_counter.html')
-        elif retval == 1:
-            return render_template('/CounterManager/failure_token_to_counter.html', reason = "Product not present in selected Token")
+
+            return render_template('/CounterOperator/counter_operator_add_inventory_to_counter_success.html')
+
+        error_reasons = ["Quantity not valid.",
+                         "Product not found in inventory",
+                         "Quantity in warehouse not sufficient"]
+        return render_template('/CounterOperator/counter_operator_add_inventory_to_counter_failure.html', reason=error_reasons[retval - 1])
     else:
-        return render_template('/CounterManager/add_token_to_counter.html')
+        return render_template('/CounterOperator/counter_operator_add_inventory_to_counter.html')
+
+# Add products from token to counter
+@app.route('/CounterOperator/AddTokenToCounter', methods=['GET', 'POST'])
+def counter_operator_add_token_to_counter():
+    if request.method == 'POST':
+        # Get the token and product details
+        token_id = request.form['TokenID'].strip()
+        product_id = request.form['ProductID'].strip()
+
+        # Remove product from token and add to the counter
+        retval = CounterManager.add_token_to_counter(pysql, token_id, product_id)
+
+        # Check for errors
+        if retval == 0:
+            return render_template('/CounterOperator/counter_operator_add_token_to_counter_success.html')
+
+        error_reasons = ["Product not present in selected Token"]
+        return render_template('/CounterOperator/counter_operator_add_token_to_counter_failure.html', reason=error_reasons[retval - 1])
+    else:
+        return render_template('/CounterOperator/counter_operator_add_token_to_counter.html')
+
 
 @app.route('/BillOperator', methods=['GET', 'POST'])
 def bill_operator_home():
@@ -327,7 +471,18 @@ def update_gst_cgst():
 @app.route('/BillOperator/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():
     if request.method == 'POST':
-        print("Yes")
+        invoice_id = request.form['invoice_id']
+        add_discount = Decimal(request.form['add_discount'])
+        add_discount = round(add_discount, 3)
+        retval = InvoiceManager.update_gst_cgst(pysql, invoice_id, add_discount)
+        if retval == 0:
+            return render_template('/BillOperator/success_add_discount.html')
+        elif retval == 1:
+            return render_template('/BillOperator/failure_add_discount.html',
+                                   reason="This Invoice-ID does not exist")
+        elif retval == 2:
+            return render_template('/BillOperator/failure_add_discount.html',
+                                   reason="The discount given is negative")
     else:
         return render_template('/BillOperator/additional_discount.html')
 
