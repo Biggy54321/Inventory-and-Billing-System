@@ -506,7 +506,7 @@ def additional_discount():
 @app.route('/BillOperator/ViewInvoice', methods=['GET', 'POST'])
 def view_invoice_details():
     if request.method == 'POST':
-        print("Yes")
+        invoice_id = request.form['invoice_id']
     else:
         return render_template('/BillOperator/view_invoice_details_home.html')
 
