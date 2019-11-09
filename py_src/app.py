@@ -313,11 +313,9 @@ def update_gst_cgst():
     if request.method == 'POST':
         new_gst = Decimal(request.form['new_gst'])
         new_cgst = Decimal(request.form['new_cgst'])
-        print("Reached here")
         new_gst = round(new_gst, 2)
         new_cgst = round(new_cgst, 2)
         retval = InvoiceManager.update_gst_cgst(pysql, new_gst, new_cgst)
-        print("Retval: ")
         if retval == 0:
             return render_template('/BillOperator/success_gst_cgst_updated.html')
         elif retval == 1:
