@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS Products (
        `Name`            VARCHAR(16) NOT NULL,
        `Description`     VARCHAR(64),
        `UnitPrice`       NUMERIC(9, 3) UNSIGNED,
-       `UnitType`        ENUM ("kg", "pcs"),
+       `UnitType`        ENUM ("kg", "pcs", "ltrs"),
        `GST`             NUMERIC(4, 2) UNSIGNED,
        `CGST`            NUMERIC(4, 2) UNSIGNED,
        `CurrentDiscount` NUMERIC(4, 2) UNSIGNED DEFAULT 0,

@@ -36,9 +36,9 @@ class ProductManager:
             return 3
 
         # Check if gst and cgst are correct
-        if 0 < gst or gst > 100:
+        if 0 > gst or gst > 100:
             return 4
-        if 0 < cgst or cgst > 100:
+        if 0 > cgst or cgst > 100:
             return 4
 
         # Check if discount not negative
@@ -154,7 +154,7 @@ class ProductManager:
 
         # Update the gst and cgst fields
         sql_stmt = "UPDATE `Products` \
-                    SET `GST` = %s,
+                    SET `GST` = %s, \
                         `CGST` = %s \
                     WHERE `ProductID` = %s"
         pysql.run(sql_stmt, (gst, cgst, product_id))
@@ -214,13 +214,15 @@ class ProductManager:
 
     # @ref __add_product
     @staticmethod
-    def add_product(pysql, product_id, name, description, unit_price, unit_type, current_discount = None):
+    def add_product(pysql, product_id, name, description, unit_price, unit_type, gst, cgst, current_discount = None):
         return pysql.run_transaction(ProductManager.__add_product,
                                      product_id,
                                      name,
                                      description,
                                      unit_price,
                                      unit_type,
+                                     gst,
+                                     cgst,
                                      current_discount)
 
     # @ref __update_product_discount
