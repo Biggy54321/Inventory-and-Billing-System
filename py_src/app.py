@@ -53,7 +53,7 @@ def inventory_manager_add_product():
         description = request.form['Description'].strip()
         unit_price = float((request.form['UnitPrice'].strip()))
         unit_type = request.form['UnitType'].strip()
-        gst = float(request.form['GST'].strip())
+        gst = float(request.form['SGST'].strip())
         cgst = float(request.form['CGST'].strip())
         current_discount = float(request.form['CurrentDiscount'].strip())
 
@@ -68,7 +68,7 @@ def inventory_manager_add_product():
         error_reasons = ["Product ID already used.",
                          "Unit price not valid.,",
                          "Unit type not valid.",
-                         "GST or CGST not valid",
+                         "SGST or CGST not valid",
                          "Discount not valid."]
         return render_template('InventoryManager/inventory_manager_failure.html', reason=error_reasons[retval - 1])
     else:
