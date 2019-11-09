@@ -1,7 +1,9 @@
 # Import the required libraries
 from flask import Flask, render_template, request, redirect
 import sys
-sys.path += ['../']
+from decimal import Decimal
+#from waitress import serve
+sys.path.append('../')
 from CmsLib import *
 
 # Create the flask object for server side programming
@@ -40,6 +42,7 @@ def inventory_manager():
 
     return render_template('/InventoryManager/inventory_manager.html')
 
+
 # Add product page
 @app.route('/InventoryManager/AddProduct', methods = ['GET', 'POST'])
 def inventory_manager_add_product():
@@ -66,6 +69,7 @@ def inventory_manager_add_product():
         return redirect('InventoryManager/inventory_manager_add_product_failure.html', reason=error_reasons[retval - 1])
     else:
         return render_template('InventoryManager/inventory_manager_add_product.html')
+
 
 # Place order page
 @app.route('/InventoryManager/PlaceOrder', methods = ['GET', 'POST'])
@@ -109,6 +113,7 @@ def inventory_manager_place_order():
     else:
         return render_template('/InventoryManager/inventory_manager_place_order.html', products=products)
 
+
 # Receive order page
 @app.route('/InventoryManager/ReceiveOrder', methods = ['GET', 'POST'])
 def inventory_manager_receive_order():
@@ -128,6 +133,7 @@ def inventory_manager_receive_order():
         return render_template('/InventoryManager/inventory_manager_receive_order_failure.html', reason=error_reasons[retval - 1])
     else:
         return render_template('/InventoryManager/inventory_manager_receive_order.html')
+
 
 # # Cancel order page
 @app.route('/InventoryManager/CancelOrder', methods = ['GET', 'POST'])
@@ -149,6 +155,7 @@ def inventory_manager_cancel_order():
     else:
         return render_template('/InventoryManager/inventory_manager_cancel_order.html')
 
+
 # View inventory page
 @app.route('/InventoryManager/ViewInventory', methods = ['GET', 'POST'])
 def inventory_manager_view_inventory():
@@ -156,12 +163,14 @@ def inventory_manager_view_inventory():
     inventory = InventoryManager.get_inventory_details(pysql)
     return render_template('/InventoryManager/inventory_manager_view_inventory.html', inventory = inventory)
 
+
 # View products page
 @app.route('/InventoryManager/ViewProducts', methods = ['GET', 'POST'])
 def inventory_manager_view_products():
     # Get the product details
     products = ProductManager.get_all_products(pysql)
     return render_template('/InventoryManager/inventory_manager_view_products.html', products=products)
+
 
 # Order details page
 @app.route('/InventoryManager/OrderDetails', methods = ['GET', 'POST'])
@@ -175,6 +184,7 @@ def inventory_manager_order_details():
     else:
         return render_template('/InventoryManager/inventory_manager_order_details.html')
 
+
 # Orders between dates page
 @app.route('/InventoryManager/OrdersBetweenDates', methods = ['GET', 'POST'])
 def inventory_manager_daily_orders():
@@ -187,12 +197,14 @@ def inventory_manager_daily_orders():
     else:
         return render_template('/InventoryManager/inventory_manager_orders_between_dates.html')
 
+
 # Transaction log page
 @app.route('/InventoryManager/TransactionLog', methods = ['GET', 'POST'])
 def inventory_manager_transaction_log():
     # Get the transactions
     transactions = InventoryManager.get_transactions(pysql)
     return render_template('/InventoryManager/inventory_manager_transaction_log.html', transactions=transactions)
+
 
 # Product date transaction page
 @app.route('/InventoryManager/ProductDateTransactionLog', methods = ['GET', 'POST'])
@@ -211,6 +223,7 @@ def inventory_manager_transactions_of_product_on_date():
         return render_template('/InventoryManager/inventory_manager_product_date_transaction_log_result.html', transactions=transactions)
     else:
         return render_template('/InventoryManager/inventory_manager_product_date_transaction_log.html', products=products)
+
 
 # Token manager page
 @app.route('/TokenManager', methods = ['GET', 'POST'])
@@ -231,12 +244,14 @@ def token_manager():
     else:
         return render_template('/TokenManager/token_manager.html')
 
+
 # Token statuses page
 @app.route('/TokenManager/GetTokenStatuses', methods = ['GET', 'POST'])
 def token_manager_token_statuses():
     # Get the token statuses
     statuses = TokenManager.get_all_tokens_status(pysql)
     return render_template('/TokenManager/token_manager_token_statuses.html', statuses=statuses)
+
 
 # Get token page
 @app.route('/TokenManager/GetToken', methods = ['GET', 'POST'])
@@ -247,6 +262,7 @@ def token_manager_get_token():
         return render_template('/TokenManager/token_manager_get_token_failure.html')
     else:
         return render_template('/TokenManager/token_manager_get_token.html', token_id=token_id)
+
 
 # Return token page
 @app.route('/TokenManager/ReturnToken', methods = ['GET', 'POST'])
@@ -267,6 +283,7 @@ def token_manager_return_token():
     else:
         return render_template('/TokenManager/token_manager_token_id_input.html')
 
+
 # Get token details page
 @app.route('/TokenManager/GetTokenDetails', methods=['GET', 'POST'])
 def token_manager_get_token_details():
@@ -279,6 +296,7 @@ def token_manager_get_token_details():
     else:
         return render_template('/TokenManager/token_manager_token_id_input.html')
 
+
 # Add token page
 @app.route('/TokenManager/AddToken', methods = ['GET', 'POST'])
 def token_manager_add_token():
@@ -287,6 +305,7 @@ def token_manager_add_token():
         return render_template('/TokenManager/token_manager_add_token_failure.html', reason="New token cannot be added")
     else:
         return render_template('/TokenManager/token_manager_add_token_success.html', token_id=new_token_id)
+
 
 # Remove token page
 @app.route('/TokenManager/RemoveToken', methods = ['GET', 'POST'])
@@ -307,6 +326,7 @@ def token_manager_remove_token():
     else:
         return render_template('/TokenManager/token_manager_token_id_input.html')
 
+
 # Counter operator page
 @app.route('/CounterOperator', methods = ['GET', 'POST'])
 def counter_operator():
@@ -322,6 +342,7 @@ def counter_operator():
                 return redirect("/CounterOperator/" + option)
     else:
         return render_template('/CounterOperator/counter_operator.html')
+
 
 # Add products from counter to token page
 @app.route('/CounterOperator/AddProductsToToken', methods=['GET', 'POST'])
@@ -354,6 +375,7 @@ def counter_operator_add_products_to_token():
     else:
         return render_template('/CounterOperator/counter_operator_add_products_to_token.html')
 
+
 # Add products from inventory to counter
 @app.route('/CounterOperator/AddInventoryToCounter', methods=['GET', 'POST'])
 def counter_operator_add_inventory_to_counter():
@@ -374,6 +396,7 @@ def counter_operator_add_inventory_to_counter():
 
         # Check for errors
         if retval == 0:
+
             return render_template('/CounterOperator/counter_operator_add_inventory_to_counter_success.html')
 
         error_reasons = ["Quantity not valid.",
@@ -404,9 +427,9 @@ def counter_operator_add_token_to_counter():
         return render_template('/CounterOperator/counter_operator_add_token_to_counter.html')
 
 
-@app.route('/BillOperator', methods = ['GET', 'POST'])
+@app.route('/BillOperator', methods=['GET', 'POST'])
 def bill_operator_home():
-    if request.method == 'POST' :
+    if request.method == 'POST':
         if 'generate_invoice' in request.form:
             return redirect('BillOperator/GenerateInvoice')
         elif 'update_gst_cgst' in request.form:
@@ -418,37 +441,61 @@ def bill_operator_home():
         elif 'date_wise_invoice' in request.form:
             return redirect('BillOperator/DateWiseInvoice')
     else:
-	    return render_template('/BillOperator/bill_operator_home.html')
+        return render_template('/BillOperator/bill_operator_home.html')
 
-@app.route('/BillOperator/GenerateInvoice', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/GenerateInvoice', methods=['GET', 'POST'])
 def generate_invoice():
     if request.method == 'POST':
         print("Yes")
     else:
         return render_template('/BillOperator/generate_invoice_home.html')
 
-@app.route('/BillOperator/UpdateCgstGst', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/UpdateCgstGst', methods=['GET', 'POST'])
 def update_gst_cgst():
     if request.method == 'POST':
-        print("Yes")
+        new_gst = Decimal(request.form['new_gst'])
+        new_cgst = Decimal(request.form['new_cgst'])
+        new_gst = round(new_gst, 2)
+        new_cgst = round(new_cgst, 2)
+        retval = InvoiceManager.update_gst_cgst(pysql, new_gst, new_cgst)
+        if retval == 0:
+            return render_template('/BillOperator/success_gst_cgst_updated.html')
+        elif retval == 1:
+            return render_template('/BillOperator/failure_updated_gst.html', reason="GST & CGST should be less than 100 and greater than 0")
     else:
         return render_template('/BillOperator/update_gst.html')
 
-@app.route('/BillOperator/AdditionalDiscount', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():
     if request.method == 'POST':
-        print("Yes")
+        invoice_id = request.form['invoice_id']
+        add_discount = Decimal(request.form['add_discount'])
+        add_discount = round(add_discount, 3)
+        retval = InvoiceManager.give_additional_discount(pysql, invoice_id, add_discount)
+        if retval == 0:
+            return render_template('/BillOperator/success_add_discount.html')
+        elif retval == 1:
+            return render_template('/BillOperator/failure_add_discount.html',
+                                   reason="This Invoice-ID does not exist")
+        elif retval == 2:
+            return render_template('/BillOperator/failure_add_discount.html',
+                                   reason="The discount given is negative")
     else:
         return render_template('/BillOperator/additional_discount.html')
 
-@app.route('/BillOperator/ViewInvoice', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/ViewInvoice', methods=['GET', 'POST'])
 def view_invoice_details():
     if request.method == 'POST':
         print("Yes")
     else:
         return render_template('/BillOperator/view_invoice_details_home.html')
 
-@app.route('/BillOperator/DateWiseInvoice', methods = ['GET', 'POST'])
+
+@app.route('/BillOperator/DateWiseInvoice', methods=['GET', 'POST'])
 def date_wise_invoice():
     if request.method == 'POST':
         print("Yes")
@@ -456,4 +503,5 @@ def date_wise_invoice():
         return render_template('/BillOperator/date_wise_invoice_home.html')
 
 if __name__ == "__main__" :
-    app.run(debug = True)
+    #serve(app, port = 5000, host = '0.0.0.0')
+    app.run(debug=True)
