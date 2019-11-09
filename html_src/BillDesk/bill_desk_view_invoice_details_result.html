@@ -4,6 +4,9 @@
     <title>Invoice details</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="../styles.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
+    <script type=text/javascript> $(function() { $("#mybutton").click(function (event) { $.getJSON('/BillDesk/PrintInvoiceCopy', { },
+    function(data) { }); return false; }); }); </script> 
     <style>
       h3 {display:inline}
       pre {tab-size: 8}
@@ -44,5 +47,6 @@
     <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total + sgst_total + cgst_total - discount_given }}<br></pre>
     <br>
     <a href='/BillDesk' class="button">Back</a>
+    <a class="button" href="/BillDesk/PrintInvoiceCopy">PRINT</a>
   </body>
 </html>

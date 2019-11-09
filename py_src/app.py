@@ -1,7 +1,10 @@
 # Import the required libraries
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
+from flask_session import Session
 import sys
 from decimal import Decimal
+import pdfkit
+import flask_weasyprint
 #from waitress import serve
 sys.path.append('../')
 from CmsLib import *
@@ -11,6 +14,10 @@ from CmsLib import *
 app = Flask(__name__ ,
             template_folder = '../html_src/',
             static_folder = '../html_src/')
+
+app.secret_key = "abc"
+
+invoice_id_global = ""
 
 # Create the pysql object for database programming
 pysql = PySql(app, 'db.yaml')
@@ -527,10 +534,52 @@ def generate_invoice():
     else:
         return render_template('/BillDesk/bill_desk_generate_invoice.html', tokens=tokens)
 
-@app.route('/BillDesk/PrintInvoice', methods=['GET', 'POST'])
+@app.route('/BillDesk/PrintInvoiceCopy', methods=['GET', 'POST'])
+def print_invoice_copy():
+    # Get the invoice details
+    invoice_id = invoice_id_global
+    invoice_parameters, invoice_details = InvoiceManager.get_invoice_details(pysql, invoice_id)
+
+    # Check if we have a result
+    if invoice_parameters and invoice_details:
+        # Extract the parameter information
+        timestamp = invoice_parameters[1]
+        discount_given = invoice_parameters[2]
+        payment_mode = invoice_parameters[3]
+        # Initialize the empty invoice
+        invoice = []
+        sgst_total = 0
+        cgst_total = 0
+        invoice_total = 0
+
+        # Process the invoice information
+        for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
+            # Get the required invoice details to be displayed
+            product_id_name = "{} ({})".format(name, product_id)
+            unit_price_with_discount = unit_price * (1 - discount / 100)
+            product_total = round(quantity * unit_price_with_discount, 2)
+            product_sgst = round(sgst * product_total / 100, 2)
+            product_cgst = round(cgst * product_total / 100, 2)
+            # Update the total sgst, cgst and products
+            sgst_total += product_sgst
+            cgst_total += product_cgst
+            invoice_total += product_total
+            # Convert sgst and cgst to strings
+            product_sgst = "{} @ {}%".format(product_sgst, sgst)
+            product_cgst = "{} @ {}%".format(product_cgst, cgst)
+
+            invoice.append((product_id_name, quantity, unit_price, product_sgst, product_cgst, product_total))
+
+            return render_template('/BillDesk/bill_desk_print_invoice.html', invoice_id=invoice_id, timestamp=timestamp, discount_given=discount_given, payment_mode=payment_mode, invoice=invoice, sgst_total=sgst_total, cgst_total=cgst_total, invoice_total=invoice_total)
+
+
+@app.route('/BillDesk/PrintInvoice')
 def print_invoice():
-    # pdfkit.from_url('/127.0.0.1:5000/BillDesk/GenerateInvoice', '../Invoices/current_invoice.pdf')
-    pass
+    pdfkit.from_url('127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/current_invoice.pdf')
+    return "nothing"
+    #session['invoice_id'] = invoice_id
+    #pdfkit.from_url('/127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/current_invoice.pdf')
+    
 
 # Give additional discount page
 @app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
@@ -561,6 +610,8 @@ def view_invoice_details():
     if request.method == 'POST':
         # Get the invoice id
         invoice_id = request.form['InvoiceID']
+        global invoice_id_global
+        invoice_id_global = invoice_id
 
         # Get the invoice details
         invoice_parameters, invoice_details = InvoiceManager.get_invoice_details(pysql, invoice_id)
