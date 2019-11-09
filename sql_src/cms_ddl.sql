@@ -22,11 +22,10 @@ CREATE TABLE IF NOT EXISTS Products (
        `Description`     VARCHAR(64),
        `UnitPrice`       NUMERIC(9, 3) UNSIGNED,
        `UnitType`        ENUM ("kg", "pcs", "ltrs"),
-       `SGST`             NUMERIC(4, 2) UNSIGNED,
+       `SGST`            NUMERIC(4, 2) UNSIGNED,
        `CGST`            NUMERIC(4, 2) UNSIGNED,
        `CurrentDiscount` NUMERIC(4, 2) UNSIGNED DEFAULT 0,
        CONSTRAINT `Products_PK_FMT` CHECK (ProductID REGEXP "^[A-Z]{3}-[0-9]{2}$"),
-       CONSTRAINT `Products_CUR_DSCT_FMT` CHECK (CurrentDiscount < UnitPrice),
        CONSTRAINT `Products_NAME_FMT` UNIQUE (Name),
        CONSTRAINT `Products_PK` PRIMARY KEY (ProductID)
 );
@@ -102,7 +101,7 @@ CREATE TABLE IF NOT EXISTS ProductsInInvoices (
        `Name`      CHAR(16),
        `Quantity`  NUMERIC(9, 3) UNSIGNED,
        `UnitPrice` NUMERIC(9, 3) UNSIGNED,
-       `GST`       NUMERIC(4, 2) UNSIGNED,
+       `SGST`       NUMERIC(4, 2) UNSIGNED,
        `CGST`      NUMERIC(4, 2) UNSIGNED,
        `Discount`  NUMERIC(4, 2) UNSIGNED,
        CONSTRAINT `ProductsInInvoices_PK` PRIMARY KEY (InvoiceID, ProductID),

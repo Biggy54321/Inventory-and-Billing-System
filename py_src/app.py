@@ -5,7 +5,7 @@ from decimal import Decimal
 #from waitress import serve
 sys.path.append('../')
 from CmsLib import *
-import pdfkit
+# import pdfkit
 
 # Create the flask object for server side programming
 app = Flask(__name__ ,
@@ -39,7 +39,7 @@ def inventory_manager():
         # Check if any option is asserted
         for option in options:
             if option in request.form:
-                return redirect("InventoryManager/" + option)
+                return redirect("/InventoryManager/" + option)
 
     return render_template('/InventoryManager/inventory_manager.html')
 
@@ -56,7 +56,7 @@ def inventory_manager_add_product():
         unit_type = request.form['UnitType'].strip()
         gst = float(request.form['SGST'].strip())
         cgst = float(request.form['CGST'].strip())
-        current_discount = float(request.form['CurrentDiscount'].strip())
+        current_discount = float(request.form['Discount'].strip())
 
         # Add the product
         retval = ProductManager.add_product(pysql, product_id, name, description, unit_price, unit_type, gst, cgst, current_discount)
@@ -105,14 +105,13 @@ def inventory_manager_place_order():
             # Place order
             retval = OrderManager.place_order(pysql, product_quantities)
 
+            # If no error
+            if retval not in [1, 2]:
+                return render_template('/InventoryManager/inventory_manager_success.html', result="Order {} Placed Successfully".format(retval))
             # If error
             error_reasons = ["Details of one of the products ordered not found.",
                              "One of the quantities in the order is not valid"]
-            if retval == 1 or retval == 2:
-                return render_template('/InventoryManager/inventory_manager_failure.html', reason=error_reasons[retval - 1])
-
-            # If no error
-            return render_template('/InventoryManager/inventory_manager_success.html', result="Order {} Placed Successfully".format(retval))
+            return render_template('/InventoryManager/inventory_manager_failure.html', reason=error_reasons[retval - 1])
         else:
             return redirect('/InventoryManager')
     else:
@@ -476,92 +475,147 @@ def counter_operator_add_token_to_counter():
     else:
         return render_template('/CounterOperator/counter_operator_add_token_to_counter.html')
 
-
+# Bill desk page
 @app.route('/BillDesk', methods=['GET', 'POST'])
-def bill_desk_home():
+def bill_desk():
     if request.method == 'POST':
-        if 'generate_invoice' in request.form:
-            return redirect('BillDesk/GenerateInvoice')
-        elif 'additional_discount' in request.form:
-            return redirect('BillDesk/AdditionalDiscount')
-        elif 'view_invoice_details' in request.form:
-            return redirect('BillDesk/ViewInvoice')
-        elif 'date_wise_invoice' in request.form:
-            return redirect('BillDesk/DateWiseInvoice')
+        # Get the options
+        options = ["GenerateInvoice",
+                   "AdditionalDiscount",
+                   "ViewInvoice",
+                   "DateWiseInvoice"]
+
+        # Check if an option is asserted
+        for option in options:
+            if option in request.form:
+                return redirect("/BillDesk/" + option)
     else:
-        return render_template('/BillDesk/bill_desk_home.html')
+        return render_template('/BillDesk/bill_desk.html')
 
-
+# Generate invoice page
 @app.route('/BillDesk/GenerateInvoice', methods=['GET', 'POST'])
 def generate_invoice():
+    # Get all token statuses
+    tokens = TokenManager.get_all_tokens_status(pysql)
+    # Get the token ids
+    tokens = [each[0] for each in tokens]
+
     if request.method == 'POST':
-        token_ids = request.form['token_ids']
-        token_ids = token_ids.split(',')
-        current_discount = float(request.form['current_discount'])
-        payment_mode = request.form['payment_mode']
+        # Get the token ids
+        token_ids = request.form.getlist("Select[]")
+
+        # Check if tokens are selected
+        if not token_ids:
+            return render_template('/BillDesk/bill_desk_alert.html', result="No tokens selected")
+
+        # Get the current discount and payment mode
+        payment_mode = request.form['PaymentMode']
+
+        # Generate the invoice
         retval = InvoiceManager.generate_invoice(pysql, token_ids, payment_mode)
-        error_reason = ['One of the tokens is not found or not assigned', 'No products to be billed', 'Payment mode incorrect', 
-                            'Invoice not found', 'Discount Negative, have some common sense']
-        if retval == 1 or retval == 2 or retval == 3:
-            return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reason[retval])
-        else:
-            invoice_id = retval
-            retval = InvoiceManager.give_additional_discount(pysql, invoice_id, current_discount)
-            if retval == 1 or retval == 2:
-                return render_template('/BillDesk/bill_desk_generate_invoice_failure.html', reason = error_reason[retval + 3])
-            else:
-                invoice_details, products_details = InvoiceManager.get_invoice_details(pysql, invoice_id)
-                products = []
-                sgst = 0
-                cgst = 0
-                for product in products_details:
-                    products.append([product[0], product[3], product[1] - product[2], product[4] + product[5], ((product[1] - product[2]) * product[3]) * product[5], ((product[1] - product[2]) * product[3]) * product[4], (product[1] - product[2]) * product[3]])
-                    sgst += ((product[1] - product[2]) * product[3]) * product[4]
-                    cgst += ((product[1] - product[2]) * product[3]) * product[5]
-                    total_amount += (product[1] - product[2]) * product[3]
-                total_amount_with_discount = total_amount - invoice_details[2]
-                return render_template('/BillDesk/bill_desk_generate_invoice_success.html', details = invoice_details, products = products, sgst = sgst, cgst = cgst, total_amount = total_amount, total_amount_with_discount = total_amount_with_discount)
+
+        # If no errors
+        if retval not in [1, 2, 3]:
+            return render_template('/BillDesk/bill_desk_success.html', result="Invoice {} generated successfully".format(retval))
+
+        # If errors
+        error_reason = ['One of the tokens is not found or not assigned',
+                        'No products to be billed',
+                        'Payment mode incorrect']
+        return render_template('/BillDesk/bill_desk_failure.html', reason=error_reason[retval - 1])
+
     else:
-        return render_template('/BillDesk/bill_desk_generate_invoice_home.html')
+        return render_template('/BillDesk/bill_desk_generate_invoice.html', tokens=tokens)
 
 @app.route('/BillDesk/PrintInvoice', methods=['GET', 'POST'])
 def print_invoice():
-    pdfkit.from_url('/127.0.0.1:5000/BillDesk/GenerateInvoice', '../Invoices/current_invoice.pdf')
-    
+    # pdfkit.from_url('/127.0.0.1:5000/BillDesk/GenerateInvoice', '../Invoices/current_invoice.pdf')
+    pass
 
+# Give additional discount page
 @app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
 def additional_discount():
     if request.method == 'POST':
-        invoice_id = request.form['invoice_id']
-        add_discount = Decimal(request.form['add_discount'])
-        add_discount = round(add_discount, 3)
-        retval = InvoiceManager.give_additional_discount(pysql, invoice_id, add_discount)
+        # Get the invoice id and discount
+        invoice_id = request.form['InvoiceID']
+        discount = Decimal(request.form['DiscountGiven'])
+        discount = round(discount, 3)
 
+        # Give additional discount
+        retval = InvoiceManager.give_additional_discount(pysql, invoice_id, discount)
+
+        # If no errors
         if retval == 0:
-            return render_template('/BillDesk/success_add_discount.html')
+            return render_template('/BillDesk/bill_desk_success.html', result="Discount given successfully")
 
-        error_reasons = ['This Invoice-ID does not exist', 'The discount given is negative']
-
-        return render_template('/BillDesk/bill_desk_failure_add_discount.html', reason = error_reasons[retval])
-
+        # If errors
+        error_reasons = ['This Invoice ID does not exist',
+                         'The discount given is negative']
+        return render_template('/BillDesk/bill_desk_failure.html', reason=error_reasons[retval - 1])
     else:
         return render_template('/BillDesk/bill_desk_additional_discount.html')
 
-
+# View invoice details page
 @app.route('/BillDesk/ViewInvoice', methods=['GET', 'POST'])
 def view_invoice_details():
     if request.method == 'POST':
-        invoice_id = request.form['invoice_id']
+        # Get the invoice id
+        invoice_id = request.form['InvoiceID']
+
+        # Get the invoice details
+        invoice_parameters, invoice_details = InvoiceManager.get_invoice_details(pysql, invoice_id)
+
+        # Check if we have a result
+        if invoice_parameters and invoice_details:
+            # Extract the parameter information
+            timestamp = invoice_parameters[1]
+            discount_given = invoice_parameters[2]
+            payment_mode = invoice_parameters[3]
+            # Initialize the empty invoice
+            invoice = []
+            sgst_total = 0
+            cgst_total = 0
+            invoice_total = 0
+
+            # Process the invoice information
+            for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
+                # Get the required invoice details to be displayed
+                product_id_name = "{} ({})".format(name, product_id)
+                unit_price_with_discount = unit_price * (1 - discount / 100)
+                product_total = round(quantity * unit_price_with_discount, 2)
+                product_sgst = round(sgst * product_total / 100, 2)
+                product_cgst = round(cgst * product_total / 100, 2)
+                # Update the total sgst, cgst and products
+                sgst_total += product_sgst
+                cgst_total += product_cgst
+                invoice_total += product_total
+                # Convert sgst and cgst to strings
+                product_sgst = "{} @ {}%".format(product_sgst, sgst)
+                product_cgst = "{} @ {}%".format(product_cgst, cgst)
+
+                invoice.append((product_id_name, quantity, unit_price, product_sgst, product_cgst, product_total))
+
+            return render_template('/BillDesk/bill_desk_view_invoice_details_result.html', invoice_id=invoice_id, timestamp=timestamp, discount_given=discount_given, payment_mode=payment_mode, invoice=invoice, sgst_total=sgst_total, cgst_total=cgst_total, invoice_total=invoice_total)
+        else:
+            return render_template('/BillDesk/bill_desk_alert.html', result="Invoice details not found")
     else:
-        return render_template('/BillDesk/view_invoice_details_home.html')
+        return render_template('/BillDesk/bill_desk_view_invoice_details.html')
 
-
+# Date wise invoices page
 @app.route('/BillDesk/DateWiseInvoice', methods=['GET', 'POST'])
 def date_wise_invoice():
     if request.method == 'POST':
-        print("Yes")
+        # Get the date
+        on_date = request.form['OnDate']
+        # Get the invoices on the given date
+        invoices = InvoiceManager.get_invoices_by_date(pysql, on_date)
+
+        if not invoices:
+            return render_template('/BillDesk/bill_desk_alert.html', result="No invoices found on {}".format(on_date))
+        else:
+            return render_template('/BillDesk/bill_desk_date_wise_invoice_result.html', invoices=invoices)
     else:
-        return render_template('/BillDesk/date_wise_invoice_home.html')
+        return render_template('/BillDesk/bill_desk_date_wise_invoice.html')
 
 if __name__ == "__main__" :
     #serve(app, port = 5000, host = '0.0.0.0')

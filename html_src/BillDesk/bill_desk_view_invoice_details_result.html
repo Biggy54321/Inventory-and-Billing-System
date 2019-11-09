@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Invoice details</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+      h3 {display:inline}
+      pre {tab-size: 8}
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <pre><h3>Invoice ID   :</h3> {{ invoice_id }}    <h3>Timestamp :</h3> {{ timestamp }}<br><br></pre>
+    <pre><h3>Payment mode :</h3> {{ payment_mode }}<br><br></pre>
+
+    <!-- Body -->
+    <table border="1" cellpadding="5" cellspacing="5">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Rate</th>
+          <th>SGST</th>
+          <th>CGST</th>
+          <th>Total Amount(Exc. GST)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in invoice %}
+        <tr>
+          {% for d in row %}
+          <td>{{ d }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table><br>
+    <!-- Tailer -->
+    <pre>                                                                                      <h3>Total SGST     :</h3> {{ sgst_total }}<br></pre>
+    <pre>                                                                                      <h3>Total CGST     :</h3> {{ cgst_total }}<br></pre>
+    <pre>                                                                                      <h3>Total amount   :</h3> {{ invoice_total }}<br></pre>
+    <pre>                                                                                      <h3>Discount given :</h3> {{ discount_given }}<br></pre>
+    <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total + sgst_total + cgst_total - discount_given }}<br></pre>
+    <br>
+    <a href='/BillDesk' class="button">Back</a>
+  </body>
+</html>

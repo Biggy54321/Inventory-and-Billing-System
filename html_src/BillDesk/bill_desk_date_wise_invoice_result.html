@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Invoices on date</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <h2>Invoices</h2><br><br>
+    <table  border="1" cellpadding="5" cellspacing="5">
+      <thead>
+        <tr>
+          <th>Invoice ID</th>
+          <th>Time</th>
+          <th>Discount Given</th>
+          <th>Payment Mode</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in invoices %}
+        <tr>
+          {% for d in row %}
+          <td>{{ d }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br><br>
+    <a href='/BillDesk' class="button">Back</a>
+  </body>
+</html>

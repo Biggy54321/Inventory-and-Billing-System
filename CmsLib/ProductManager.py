@@ -13,7 +13,7 @@ class ProductManager:
     # @param unit_type Type of units (enum string)
     # @param sgst SGST
     # @param cgst CGST
-    # @param current_discount Discount in percentage (float)
+    # @param discount Discount in percentage (float)
     # @retval 0 Added product successfully
     # @retval 1 Product id already used
     # @retval 2 Unit price not positive
@@ -21,7 +21,7 @@ class ProductManager:
     # @retval 4 SGST and CGST not valid
     # @retval 5 Current discount not valid
     @staticmethod
-    def __add_product(pysql, product_id, name, description, unit_price, unit_type, sgst, cgst, current_discount):
+    def __add_product(pysql, product_id, name, description, unit_price, unit_type, sgst, cgst, discount):
         # Get the product existence status
         product_exists = ProductManager._ProductManager__product_exists(pysql, product_id)
 
@@ -44,14 +44,14 @@ class ProductManager:
             return 4
 
         # Check if discount not negative
-        if current_discount and current_discount < 0:
+        if discount and discount < 0:
             return 5
 
         # Check if discount is specified
-        if current_discount:
+        if discount:
             sql_stmt = "INSERT INTO `Products` \
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, sgst, cgst, current_discount))
+            pysql.run(sql_stmt, (product_id, name, description, unit_price, unit_type, sgst, cgst, discount))
         else:
             sql_stmt = "INSERT INTO `Products` (`ProductID`, `Name`, `Description`, `UnitPrice`, `UnitType`, `SGST`, `CGST`) \
                         VALUES (%s, %s, %s, %s, %s, %s, %s)"
@@ -103,7 +103,7 @@ class ProductManager:
         if not product_exists:
             return 1
 
-        # Check if discount is not positive
+        # Check if price is not positive
         if price <= 0:
             return 2
 
@@ -223,7 +223,7 @@ class ProductManager:
 
     # @ref __add_product
     @staticmethod
-    def add_product(pysql, product_id, name, description, unit_price, unit_type, sgst, cgst, current_discount = None):
+    def add_product(pysql, product_id, name, description, unit_price, unit_type, sgst, cgst, discount = None):
         return pysql.run_transaction(ProductManager.__add_product,
                                      product_id,
                                      name,
@@ -232,7 +232,7 @@ class ProductManager:
                                      unit_type,
                                      sgst,
                                      cgst,
-                                     current_discount)
+                                     discount)
 
     # @ref __update_product_discount
     @staticmethod

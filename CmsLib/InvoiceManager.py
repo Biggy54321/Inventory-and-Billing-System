@@ -163,14 +163,14 @@ class InvoiceManager:
     #        having their invoice dates on the given date
     # @param pysql PySql object
     # @param date On Date (string of format "YYYY-MM-DD")
-    # @retval (InvoiceID, InvoiceDate, SGST, CGST, DiscountGiven, PaymentMode) (list of tuples)
+    # @retval (InvoiceID, InvoiceDate, DiscountGiven, PaymentMode) (list of tuples)
     @staticmethod
     def __get_invoices_by_date(pysql, date):
         # Get the invoice parameters on the specified date
-        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `SGST`, `CGST`, `DiscountGiven`, `PaymentMode` \
+        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `DiscountGiven`, `PaymentMode` \
                     FROM `Invoices` \
                     WHERE DATE(`InvoiceDate`) = %s"
-        pysql.run(sql_stmt, date)
+        pysql.run(sql_stmt, (date, ))
 
         # Get the result invoice parameters
         invoices = pysql.result
