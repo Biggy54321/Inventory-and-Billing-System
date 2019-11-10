@@ -1,10 +1,8 @@
 # Import the required libraries
 from flask import Flask, render_template, request, redirect, session
-# from flask_session import Session
 import sys
 from decimal import Decimal
-# import pdfkit
-# import flask_weasyprint
+import pdfkit
 sys.path.append('../')
 from CmsLib import *
 
@@ -582,7 +580,7 @@ def print_invoice_copy():
         # Process the invoice information
         for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
             # Get the product id and name
-            product_id_name = "{} ({})".format(name, product_id)
+            product_id_name = "{}".format(name)
             # Get the appropriate unitprice subtracting the discount
             unit_price_with_discount = unit_price * (1 - discount / 100)
             # As unit price is including gst get the product total including gst

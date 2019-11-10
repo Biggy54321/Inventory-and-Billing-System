@@ -1,12 +1,64 @@
 .button {
-    background-color: #1c87c9;
+    background-color: #0266cb;
     border: none;
-    color: white;
-    padding: 6px 17px;
+    color: #fcf6f5ff;
+    padding: 7px 18px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
     margin: 4px 2px;
     cursor: pointer;
     }
+
+table {
+    margin : 0px auto;
+    border-collapse: collapse;
+    width: 93%;
+}
+    
+th {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    font-size: large;
+    padding: 12px;
+}
+
+td {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    font-size: large;
+    padding: 12px;
+}
+    
+tr:nth-child(odd){background-color: #f2f2f2}
+    
+th {
+    background-color: #0266cb;
+    color: #fcf6f5ff;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: large;
+    text-align: center;
+    align-content: center;
+}
+
+pre {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+    text-align: center;
+    align-content: right;
+}
+
+.tab {
+    display: inline-block;
+    margin-left: 400px;
+}
+
+.tab_big {
+    display: inline-block;
+    margin-left: 600px;
+}

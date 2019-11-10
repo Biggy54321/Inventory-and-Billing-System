@@ -12,6 +12,7 @@
         <style>
             h3 {display:inline}
             pre {tab-size: 8}
+            h4 {display: inline}
         </style>
     </head>
     <body>
@@ -19,15 +20,14 @@
         <h1 style="text-align: center;"><strong>चितळे बंधू मिठाईवाले</strong></h1>
         <p style="text-align: center;"><strong>Deccan Gymkhana</strong></p>
         <p style="text-align: center;">Pune. Ph. 020 25671748</p>
-        <p style="text-align: center;">GSTIN : 27AAOCA6607L1Z8</p>
-        <p style="text-align: center;">FSSAI No : 11519034000277</p>
-        <body>
+        <p style="text-align: center;"><strong>GSTIN :</strong> 27AAOCA6607L1Z8</p>
+        <p style="text-align: center;"><strong>FSSAI No :</strong> 11519034000277</p>
             <!-- Header -->
-            <pre><h3>Invoice ID   :</h3> {{ invoice_id }}    <h3>Timestamp :</h3> {{ timestamp }}<br><br></pre>
+            <h4>Invoice ID   : {{ invoice_id }} <span class="tab"></span>    Timestamp : {{ timestamp }}<br><br></h4>
             <pre><h3>Payment mode :</h3> {{ payment_mode }}<br><br></pre>
 
             <!-- Body -->
-            <table border="1" cellpadding="5" cellspacing="5">
+            <table>
               <thead>
                 <tr>
                   <th>Product</th>
@@ -49,14 +49,13 @@
               </tbody>
             </table><br>
             <!-- Tailer -->
-    <pre>                                                                                      <h3>Total SGST     :</h3> {{ sgst_total }}<br></pre>
-    <pre>                                                                                      <h3>Total CGST     :</h3> {{ cgst_total }}<br></pre>
-    <pre>                                                                                      <h3>Total GST      :</h3> {{ sgst_total + cgst_total }}<br></pre>
-    <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total }}<br></pre>
-    <pre>                                                                                      <h3>Discount given :</h3> {{ discount_given }}<br></pre>
-    <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total - discount_given }}<br></pre>
+    </body>
+    <pre><span class="tab_big"></span><h3>Total SGST     :</h3> {{ sgst_total }}<br></pre>
+    <pre><span class="tab_big"></span><h3>Total CGST     :</h3> {{ cgst_total }}<br></pre>
+    <pre><span class="tab_big"></span><h3>Total GST      :</h3> {{ sgst_total + cgst_total }}<br></pre>
+    <pre><span class="tab_big"></span><h3>Bill Amount    :</h3> {{ invoice_total }}<br></pre>
+    <pre><span class="tab_big"></span><h3>Discount given :</h3> {{ discount_given }}<br></pre>
+    <pre><span class="tab_big"></span><h3>Bill Amount    : {{ invoice_total - discount_given }}</h3><br></pre>
     <br>
-            <br>
-        </body>
-    </html>
+  </html>
 
