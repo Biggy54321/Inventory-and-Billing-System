@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
     <script type=text/javascript> $(function() { $("#mybutton").click(function (event) { $.getJSON('/BillDesk/PrintInvoiceCopy', { },
-    function(data) { }); return false; }); }); </script> 
+    function(data) { }); return false; }); }); </script>
     <style>
       h3 {display:inline}
       pre {tab-size: 8}
@@ -26,7 +26,7 @@
           <th>Rate</th>
           <th>SGST</th>
           <th>CGST</th>
-          <th>Total Amount(Exc. GST)</th>
+          <th>Total Amount(Inc. GST)</th>
         </tr>
       </thead>
       <tbody>
@@ -42,11 +42,12 @@
     <!-- Tailer -->
     <pre>                                                                                      <h3>Total SGST     :</h3> {{ sgst_total }}<br></pre>
     <pre>                                                                                      <h3>Total CGST     :</h3> {{ cgst_total }}<br></pre>
-    <pre>                                                                                      <h3>Total amount   :</h3> {{ invoice_total }}<br></pre>
+    <pre>                                                                                      <h3>Total GST      :</h3> {{ sgst_total + cgst_total }}<br></pre>
+    <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total }}<br></pre>
     <pre>                                                                                      <h3>Discount given :</h3> {{ discount_given }}<br></pre>
-    <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total + sgst_total + cgst_total - discount_given }}<br></pre>
+    <pre>                                                                                      <h3>Bill Amount    :</h3> {{ invoice_total - discount_given }}<br></pre>
     <br>
     <a href='/BillDesk' class="button">Back</a>
-    <a class="button" href="/BillDesk/PrintInvoiceCopy">PRINT</a>
+    <a class="button" href="/BillDesk/PrintInvoiceCopy">Print</a>
   </body>
 </html>

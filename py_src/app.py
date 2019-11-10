@@ -5,10 +5,8 @@ import sys
 from decimal import Decimal
 import pdfkit
 import flask_weasyprint
-#from waitress import serve
 sys.path.append('../')
 from CmsLib import *
-# import pdfkit
 
 # Create the flask object for server side programming
 app = Flask(__name__ ,
@@ -554,32 +552,34 @@ def print_invoice_copy():
 
         # Process the invoice information
         for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
-            # Get the required invoice details to be displayed
+            # Get the product id and name
             product_id_name = "{} ({})".format(name, product_id)
+            # Get the appropriate unitprice subtracting the discount
             unit_price_with_discount = unit_price * (1 - discount / 100)
-            product_total = round(quantity * unit_price_with_discount, 2)
-            product_sgst = round(sgst * product_total / 100, 2)
-            product_cgst = round(cgst * product_total / 100, 2)
+            # As unit price is including gst get the product total including gst
+            product_total_with_gst = round(quantity * unit_price_with_discount, 2)
+            # Get the product total without gst
+            product_total_without_gst = round(product_total_with_gst / (1 + (sgst + cgst) / 100), 2)
+            # Get the sgst and cgst amounts
+            product_sgst = round(product_total_without_gst * sgst / 100, 2)
+            product_cgst = round(product_total_without_gst * cgst / 100, 2)
             # Update the total sgst, cgst and products
             sgst_total += product_sgst
             cgst_total += product_cgst
-            invoice_total += product_total
+            invoice_total += product_total_with_gst
             # Convert sgst and cgst to strings
             product_sgst = "{} @ {}%".format(product_sgst, sgst)
             product_cgst = "{} @ {}%".format(product_cgst, cgst)
 
-            invoice.append((product_id_name, quantity, unit_price, product_sgst, product_cgst, product_total))
+            invoice.append((product_id_name, quantity, unit_price_with_discount, product_sgst, product_cgst, product_total_with_gst))
 
-            return render_template('/BillDesk/bill_desk_print_invoice.html', invoice_id=invoice_id, timestamp=timestamp, discount_given=discount_given, payment_mode=payment_mode, invoice=invoice, sgst_total=sgst_total, cgst_total=cgst_total, invoice_total=invoice_total)
+        return render_template('/BillDesk/bill_desk_print_invoice.html', invoice_id=invoice_id, timestamp=timestamp, discount_given=discount_given, payment_mode=payment_mode, invoice=invoice, sgst_total=sgst_total, cgst_total=cgst_total, invoice_total=invoice_total)
 
 
 @app.route('/BillDesk/PrintInvoice')
 def print_invoice():
     pdfkit.from_url('127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/current_invoice.pdf')
     return "nothing"
-    #session['invoice_id'] = invoice_id
-    #pdfkit.from_url('/127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/current_invoice.pdf')
-    
 
 # Give additional discount page
 @app.route('/BillDesk/AdditionalDiscount', methods=['GET', 'POST'])
@@ -630,21 +630,26 @@ def view_invoice_details():
 
             # Process the invoice information
             for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
-                # Get the required invoice details to be displayed
+                # Get the product id and name
                 product_id_name = "{} ({})".format(name, product_id)
+                # Get the appropriate unitprice subtracting the discount
                 unit_price_with_discount = unit_price * (1 - discount / 100)
-                product_total = round(quantity * unit_price_with_discount, 2)
-                product_sgst = round(sgst * product_total / 100, 2)
-                product_cgst = round(cgst * product_total / 100, 2)
+                # As unit price is including gst get the product total including gst
+                product_total_with_gst = round(quantity * unit_price_with_discount, 2)
+                # Get the product total without gst
+                product_total_without_gst = round(product_total_with_gst / (1 + (sgst + cgst) / 100), 2)
+                # Get the sgst and cgst amounts
+                product_sgst = round(product_total_without_gst * sgst / 100, 2)
+                product_cgst = round(product_total_without_gst * cgst / 100, 2)
                 # Update the total sgst, cgst and products
                 sgst_total += product_sgst
                 cgst_total += product_cgst
-                invoice_total += product_total
+                invoice_total += product_total_with_gst
                 # Convert sgst and cgst to strings
                 product_sgst = "{} @ {}%".format(product_sgst, sgst)
                 product_cgst = "{} @ {}%".format(product_cgst, cgst)
 
-                invoice.append((product_id_name, quantity, unit_price, product_sgst, product_cgst, product_total))
+                invoice.append((product_id_name, quantity, unit_price_with_discount, product_sgst, product_cgst, product_total_with_gst))
 
             return render_template('/BillDesk/bill_desk_view_invoice_details_result.html', invoice_id=invoice_id, timestamp=timestamp, discount_given=discount_given, payment_mode=payment_mode, invoice=invoice, sgst_total=sgst_total, cgst_total=cgst_total, invoice_total=invoice_total)
         else:
