@@ -17,7 +17,7 @@ table {
     border-collapse: collapse;
     width: 93%;
 }
-    
+
 th {
     font-family: Arial, Helvetica, sans-serif;
     text-align: center;
@@ -31,9 +31,9 @@ td {
     font-size: large;
     padding: 12px;
 }
-    
+
 tr:nth-child(odd){background-color: #f2f2f2}
-    
+
 th {
     background-color: #0266cb;
     color: #fcf6f5ff;

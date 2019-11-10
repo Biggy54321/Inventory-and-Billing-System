@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, session
 import sys
 from decimal import Decimal
 import pdfkit
+import re
 sys.path.append('../')
 from CmsLib import *
 
@@ -56,7 +57,11 @@ def inventory_manager_add_product():
         name = request.form['Name'].strip()
         if not product_id or not name:
             return render_template('InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
+        # Check the primary key format
+        if not re.match("^[A-Z]{3}-[0-9]{2}$", product_id):
+            return render_template('InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
         description = request.form['Description'].strip()
+        # Get the numerical quantities
         try:
             unit_price = float(request.form['UnitPrice'].strip())
             gst = float(request.form['SGST'].strip())
@@ -75,9 +80,9 @@ def inventory_manager_add_product():
 
         # If errors
         error_reasons = ["Product ID already used.",
-                         "Unit price not valid.,",
+                         "Unit price not valid.",
                          "Unit type not valid.",
-                         "SGST or CGST not valid",
+                         "SGST or CGST not valid.",
                          "Discount not valid."]
         return render_template('InventoryManager/inventory_manager_failure.html', reason=error_reasons[retval - 1])
     else:
@@ -132,8 +137,6 @@ def inventory_manager_receive_order():
     if request.method == 'POST':
         # Get the order id
         order_id = request.form['OrderID'].strip()
-        if not order_id:
-            return redirect('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
 
         # Receive the order
         retval = OrderManager.receive_order(pysql, order_id)
@@ -157,8 +160,6 @@ def inventory_manager_cancel_order():
     if request.method == 'POST':
         # Get the order id
         order_id = request.form['OrderID'].strip()
-        if not order_id:
-            return redirect('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
 
         # Cancel the order
         retval = OrderManager.cancel_order(pysql, order_id)
@@ -205,8 +206,6 @@ def inventory_manager_order_details():
     if request.method == 'POST':
         # Get the order id
         order_id = request.form['OrderID'].strip()
-        if not order_id:
-            return redirect('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
         # Get the order details
         order_status, order_details = OrderManager.get_order_details(pysql, order_id)
         if order_status and order_details:
@@ -223,8 +222,6 @@ def inventory_manager_orders_between_dates():
     if request.method == 'POST':
         # Get the start and end date
         from_date, to_date = request.form['FromDate'], request.form['ToDate']
-        if not from_date or not to_date:
-            return redirect('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
         # Get the order details of those orders
         orders = OrderManager.get_orders_between_date(pysql, from_date, to_date)
         # If no orders
@@ -326,8 +323,6 @@ def token_manager_return_token():
     if request.method == 'POST':
         # Get the token id
         token_id = request.form['TokenID']
-        if not token_id:
-            return render_template('TokenManager/token_manager_alert.html', result="Information entered is invalid")
 
         # Return the token
         retval = TokenManager.put_token(pysql, token_id)
@@ -350,8 +345,7 @@ def token_manager_get_token_details():
     if request.method == 'POST':
         # Get the token id
         token_id = request.form['TokenID']
-        if not token_id:
-            return render_template('TokenManager/token_manager_alert.html', result="Information entered is invalid")
+
         # Get the token details
         token_details = TokenManager.get_token_details(pysql, token_id)
 
@@ -381,8 +375,6 @@ def token_manager_remove_token():
     if request.method == 'POST':
         # Get the token id
         token_id = request.form['TokenID']
-        if not token_id:
-            return render_template('TokenManager/token_manager_alert.html', result="Information entered is invalid")
 
         # Remove the token
         retval = TokenManager.remove_token(pysql, token_id)
@@ -424,9 +416,6 @@ def counter_operator_add_products_to_token():
         product_id = request.form['ProductID'].strip()
         quantity = request.form['Quantity'].strip()
 
-        if not token_id or not product_id:
-            return redirect('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
-
         # Check if quantity is specified
         try:
             quantity = float(quantity)
@@ -457,9 +446,6 @@ def counter_operator_add_inventory_to_counter():
         product_id = request.form['ProductID'].strip()
         quantity = request.form['Quantity'].strip()
 
-        if not product_id:
-            return redirect('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
-
         # Check if quantity is specified
         try:
             quantity = float(quantity)
@@ -489,9 +475,6 @@ def counter_operator_add_token_to_counter():
         # Get the token and product details
         token_id = request.form['TokenID'].strip()
         product_id = request.form['ProductID'].strip()
-
-        if not token_id or not product_id:
-            return redirect('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
 
         # Remove product from token and add to the counter
         retval = CounterManager.add_token_to_counter(pysql, token_id, product_id)
@@ -614,8 +597,6 @@ def additional_discount():
     if request.method == 'POST':
         # Get the invoice id and discount
         invoice_id = request.form['InvoiceID']
-        if not invoice_id:
-            return render_template('/BillDesk/bill_desk_alert.html', result="Information entered is not valid")
 
         try:
             discount = float(request.form['DiscountGiven'])
@@ -642,8 +623,6 @@ def view_invoice_details():
     if request.method == 'POST':
         # Get the invoice id
         invoice_id = request.form['InvoiceID']
-        if not invoice_id:
-            return render_template('/BillDesk/bill_desk_alert.html', result="Information entered is not valid")
 
         # Set the global invoice id
         global invoice_id_global
@@ -698,8 +677,6 @@ def date_wise_invoice():
     if request.method == 'POST':
         # Get the date
         on_date = request.form['OnDate']
-        if not on_date:
-            return render_template('/BillDesk/bill_desk_alert.html', result="Information entered is not valid")
 
         # Get the invoices on the given date
         invoices = InvoiceManager.get_invoices_by_date(pysql, on_date)

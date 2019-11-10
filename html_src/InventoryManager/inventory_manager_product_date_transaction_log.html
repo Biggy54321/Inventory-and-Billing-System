@@ -9,9 +9,9 @@
       <h2>Enter the name of the product and day of transaction</h2><br><br>
         <form method="POST" action="">
             <br>On Date :
-            <input type="date" name="OnDate"><br><br>
+            <input type="date" name="OnDate" required><br><br>
             Product : <br>
-            <input list="Name" name="Name">
+            <input list="Name" name="Name" required>
             <datalist id="Name">
                 {% for element in products %}
                 <option>{{ element }}</option>
