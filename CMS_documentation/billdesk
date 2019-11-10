@@ -1,5 +1,0 @@
-Should be able to:
-1. Generate a new invoice(should handle null tokens)
-2. Give additional discout to a particular invoice_id
-3. Display invoice details for the given invoice_id
-4. Display Date wise invoice
