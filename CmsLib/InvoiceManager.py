@@ -35,6 +35,7 @@ class InvoiceManager:
 
         # Check if tokens are all assigned and the total is not null
         invoice_has_products = 0
+        invoice_total = 0
         for token in token_ids:
             # Get the token assignment status
             is_assigned = TokenManager._TokenManager__is_token_assigned(pysql, token)
@@ -45,9 +46,20 @@ class InvoiceManager:
             if not is_assigned:
                 return 1
 
+            if token_has_products:
+                # Update the total amount
+                sql_stmt = "SELECT SUM(`Quantity` * `UnitPrice` * (1 - `CurrentDiscount` / 100)) \
+                            FROM `TokensSelectProducts` JOIN `Products` USING (`ProductID`) \
+                            WHERE `TokenID` = %s"
+                pysql.run(sql_stmt, (token, ))
+                # Get the token total
+                token_total = pysql.scalar_result
+                invoice_total += token_total
+
             # Update the total product status
             invoice_has_products = invoice_has_products or token_has_products
 
+        # If invoice does not have any products
         if not invoice_has_products:
             return 2
 
@@ -59,9 +71,9 @@ class InvoiceManager:
         invoice_id = "INV-" + format(next_invoice_id, "010d")
 
         # Create an invoice
-        sql_stmt = "INSERT INTO `Invoices`(`InvoiceID`, `InvoiceDate`, `PaymentMode`) \
-                    VALUES (%s, (SELECT CURRENT_TIMESTAMP), %s)"
-        pysql.run(sql_stmt, (invoice_id, payment_mode))
+        sql_stmt = "INSERT INTO `Invoices`(`InvoiceID`,`InvoiceDate`, `InvoiceTotal`, `PaymentMode`) \
+                    VALUES (%s, (SELECT CURRENT_TIMESTAMP), %s, %s)"
+        pysql.run(sql_stmt, (invoice_id, invoice_total, payment_mode))
 
         # Link the invoice with each of the token ids
         token_ids = [(token, ) for token in token_ids]
@@ -139,7 +151,7 @@ class InvoiceManager:
     # @brief This method returns the invoice details for the specified InvoiceID
     # @param pysql PySql object
     # @param invoice_id InvoiceID (string)
-    # @retval (InvoiceID, InvoiceDate, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, SGST, CGST, Discount)
+    # @retval (InvoiceID, InvoiceDate, InvoiceTotal, DiscountGiven, PaymentMode), (ProductID, Name, Quantity, UnitPrice, SGST, CGST, Discount)
     @staticmethod
     def __get_invoice_details(pysql, invoice_id):
         # Get the invoice parameters
@@ -163,11 +175,11 @@ class InvoiceManager:
     #        having their invoice dates on the given date
     # @param pysql PySql object
     # @param date On Date (string of format "YYYY-MM-DD")
-    # @retval (InvoiceID, InvoiceDate, DiscountGiven, PaymentMode) (list of tuples)
+    # @retval (InvoiceID, InvoiceDate, InvoiceTotal, DiscountGiven, PaymentMode) (list of tuples)
     @staticmethod
     def __get_invoices_by_date(pysql, date):
         # Get the invoice parameters on the specified date
-        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `DiscountGiven`, `PaymentMode` \
+        sql_stmt = "SELECT `InvoiceID`, TIME(`InvoiceDate`), `InvoiceTotal`, `DiscountGiven`, `PaymentMode` \
                     FROM `Invoices` \
                     WHERE DATE(`InvoiceDate`) = %s"
         pysql.run(sql_stmt, (date, ))

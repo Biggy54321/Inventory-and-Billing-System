@@ -12,13 +12,14 @@ Products(ProductID,
          Description,
          UnitPrice,
          UnitType,
-         GST,
+         SGST,
          CGST,
          CurrentDiscount);
 
 Invoices(Invoice_ID,
          ----------
          InvoiceDate,
+         InvoiceTotal,
          DiscountGiven,
          PaymentMode);
 
@@ -60,6 +61,6 @@ ProductsInInvoices(InvoiceID, # many-to-many relationship
                    Name,
                    Quantity,
                    UnitPrice,
-                   GST,
+                   SGST,
                    CGST,
                    Discount);
