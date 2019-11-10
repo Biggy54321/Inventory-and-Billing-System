@@ -293,7 +293,6 @@ def token_manager_token_statuses():
     else:
         return render_template('/TokenManager/token_manager_token_statuses.html', statuses=statuses)
 
-
 # Get token page
 @app.route('/TokenManager/GetToken', methods = ['GET', 'POST'])
 def token_manager_get_token():
@@ -304,7 +303,6 @@ def token_manager_get_token():
         return render_template('/TokenManager/token_manager_failure.html', reason="Token not available")
     else:
         return render_template('/TokenManager/token_manager_success.html', result="Token {} assigned".format(token_id))
-
 
 # Return token page
 @app.route('/TokenManager/ReturnToken', methods = ['GET', 'POST'])
@@ -326,7 +324,6 @@ def token_manager_return_token():
         return render_template('/TokenManager/token_manager_failure.html', reason=error_reasons[retval - 1])
     else:
         return render_template('/TokenManager/token_manager_token_id_input.html')
-
 
 # Get token details page
 @app.route('/TokenManager/GetTokenDetails', methods=['GET', 'POST'])
@@ -356,7 +353,6 @@ def token_manager_add_token():
     # If no error
     else:
         return render_template('/TokenManager/token_manager_success.html', result="Token {} added successfully".format(new_token_id))
-
 
 # Remove token page
 @app.route('/TokenManager/RemoveToken', methods = ['GET', 'POST'])
@@ -394,7 +390,6 @@ def counter_operator():
     else:
         return render_template('/CounterOperator/counter_operator.html')
 
-
 # Add products from counter to token page
 @app.route('/CounterOperator/AddProductsToToken', methods=['GET', 'POST'])
 def counter_operator_add_products_to_token():
@@ -426,7 +421,6 @@ def counter_operator_add_products_to_token():
         return render_template('/CounterOperator/counter_operator_failure.html', reason=error_reasons[retval - 1])
     else:
         return render_template('/CounterOperator/counter_operator_add_products_to_token.html')
-
 
 # Add products from inventory to counter
 @app.route('/CounterOperator/AddInventoryToCounter', methods=['GET', 'POST'])
@@ -532,6 +526,7 @@ def generate_invoice():
     else:
         return render_template('/BillDesk/bill_desk_generate_invoice.html', tokens=tokens)
 
+# Print invoice page
 @app.route('/BillDesk/PrintInvoiceCopy', methods=['GET', 'POST'])
 def print_invoice_copy():
     # Get the invoice details
@@ -542,13 +537,13 @@ def print_invoice_copy():
     if invoice_parameters and invoice_details:
         # Extract the parameter information
         timestamp = invoice_parameters[1]
-        discount_given = invoice_parameters[2]
-        payment_mode = invoice_parameters[3]
+        invoice_total = invoice_parameters[2]
+        discount_given = invoice_parameters[3]
+        payment_mode = invoice_parameters[4]
         # Initialize the empty invoice
         invoice = []
         sgst_total = 0
         cgst_total = 0
-        invoice_total = 0
 
         # Process the invoice information
         for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
@@ -566,8 +561,7 @@ def print_invoice_copy():
             # Update the total sgst, cgst and products
             sgst_total += product_sgst
             cgst_total += product_cgst
-            invoice_total += product_total_with_gst
-            # Convert sgst and cgst to strings
+              # Convert sgst and cgst to strings
             product_sgst = "{} @ {}%".format(product_sgst, sgst)
             product_cgst = "{} @ {}%".format(product_cgst, cgst)
 
@@ -575,7 +569,7 @@ def print_invoice_copy():
 
         return render_template('/BillDesk/bill_desk_print_invoice.html', invoice_id=invoice_id, timestamp=timestamp, discount_given=discount_given, payment_mode=payment_mode, invoice=invoice, sgst_total=sgst_total, cgst_total=cgst_total, invoice_total=invoice_total)
 
-
+# Print Invoice method
 @app.route('/BillDesk/PrintInvoice')
 def print_invoice():
     pdfkit.from_url('127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/current_invoice.pdf')
@@ -620,13 +614,13 @@ def view_invoice_details():
         if invoice_parameters and invoice_details:
             # Extract the parameter information
             timestamp = invoice_parameters[1]
-            discount_given = invoice_parameters[2]
-            payment_mode = invoice_parameters[3]
+            invoice_total = invoice_parameters[2]
+            discount_given = invoice_parameters[3]
+            payment_mode = invoice_parameters[4]
             # Initialize the empty invoice
             invoice = []
             sgst_total = 0
             cgst_total = 0
-            invoice_total = 0
 
             # Process the invoice information
             for product_id, name, quantity, unit_price, sgst, cgst, discount in invoice_details:
@@ -644,7 +638,6 @@ def view_invoice_details():
                 # Update the total sgst, cgst and products
                 sgst_total += product_sgst
                 cgst_total += product_cgst
-                invoice_total += product_total_with_gst
                 # Convert sgst and cgst to strings
                 product_sgst = "{} @ {}%".format(product_sgst, sgst)
                 product_cgst = "{} @ {}%".format(product_cgst, cgst)

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS Products (
 CREATE TABLE IF NOT EXISTS Invoices (
        `InvoiceID`     CHAR(14),
        `InvoiceDate`   DATETIME,
+       `InvoiceTotal`  NUMERIC(9, 3) UNSIGNED,
        `DiscountGiven` NUMERIC(9, 3) UNSIGNED DEFAULT 0,
        `PaymentMode`   ENUM ("cash", "card", "wallet"),
        CONSTRAINT `Invoices_PK_FMT` CHECK (InvoiceID REGEXP "^INV-[0-9]{10}$"),
