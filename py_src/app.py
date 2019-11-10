@@ -108,7 +108,10 @@ def inventory_manager_place_order():
             # Check if quantity is not null
             if quantity:
                 # Convert string to float
-                quantity = float(quantity)
+                try:
+                    quantity = float(quantity)
+                except:
+                    return render_template('InventoryManager/inventory_manager_alert.html', result='One of the quantities invalid')
                 # Check if quantity is non zero
                 if quantity:
                     product_quantities.append((product_id, quantity))
@@ -126,7 +129,7 @@ def inventory_manager_place_order():
                              "One of the quantities in the order is not valid"]
             return render_template('/InventoryManager/inventory_manager_failure.html', reason=error_reasons[retval - 1])
         else:
-            return redirect('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
+            return render_template('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
     else:
         return render_template('/InventoryManager/inventory_manager_place_order.html', products=products)
 
@@ -256,7 +259,7 @@ def inventory_manager_transactions_of_product_on_date():
         # Get the on date and product name
         on_date, product_name = request.form['OnDate'], request.form['Name']
         if not on_date or not product_name:
-            return redirect('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
+            return render_template('/InventoryManager/inventory_manager_alert.html', result="Information entered is invalid")
 
         # Get the product id from name
         product_id = ProductManager.get_product_id_from_name(pysql, product_name)
@@ -420,7 +423,7 @@ def counter_operator_add_products_to_token():
         try:
             quantity = float(quantity)
         except:
-            return redirect('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
+            return render_template('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
 
         # Add product quantity from counter to token
         retval = CounterManager.add_counter_to_token(pysql, token_id, product_id, quantity)
@@ -450,7 +453,7 @@ def counter_operator_add_inventory_to_counter():
         try:
             quantity = float(quantity)
         except:
-            return redirect('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
+            return render_template('/CounterOperator/counter_operator_alert.html', result="Information entered is invalid")
 
         # Add the product quantity from inventory to counter
         retval = CounterManager.add_inventory_to_counter(pysql, product_id, quantity)
