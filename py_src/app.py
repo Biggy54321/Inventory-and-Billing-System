@@ -604,7 +604,8 @@ def print_invoice_copy():
 # Print Invoice method
 @app.route('/BillDesk/PrintInvoice')
 def print_invoice():
-    pdfkit.from_url('127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/current_invoice.pdf')
+    global invoice_id_global
+    pdfkit.from_url('127.0.0.1:5000/BillDesk/PrintInvoiceCopy', '../Invoices/{}.pdf'.format(invoice_id_global))
     return "nothing"
 
 # Give additional discount page
